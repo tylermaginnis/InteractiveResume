@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume - Tyler Maginnis</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include AOS CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <style type="text/css">
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f4f4f4;
+        }
+        .btn-primary { margin-bottom: 10px; margin-left: auto; margin-right: auto; display: block; background-color: #69b3a2; color: white;  }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 40px 0;
+            text-align: center;
+        }
+        section {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+        }
+        h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .skill-bar {
+            position: relative;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 15px 0;
+            z-index:0;
+        }
+        .skill-bar:hover .skill-label::after {
+            content: attr(data-full-skill);
+            position: absolute;
+            left: 0;
+            bottom: 100%;
+            background: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            width: 400px;
+            z-index: 1000;
+        }
+        .skill-bar .skill-level {
+            display: block;
+            height: 20px;
+            background: #69b3a2;
+            border-radius: 3px;
+            z-index:0;
+        }
+        .skill-label {
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            color: #fff;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        #back-to-top {
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed/sticky position */
+            bottom: 20px; /* Place the button at the bottom of the page */
+            right: 30px; /* Place the button 30px from the right */
+            z-index: 99; /* Make sure it does not overlap */
+            border: none; /* Remove borders */
+            outline: none; /* Remove outline */
+            background-color: #333; /* Set a background color */
+            color: white; /* Text color */
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; /* Some padding */
+            border-radius: 10px; /* Rounded corners */
+        }
+        #back-to-top:hover {
+            background-color: #555; /* Add a dark-grey background on hover */
+        }
+        .portfolio-item {
+            display: none;
+        }
+        .portfolio-item.visible {
+            display: block;
+        }
+        .view-more-btn {
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .portfolio-item {
+            display: none;
+        }
+        .portfolio-item.visible {
+            display: flex;
+        }
+        .card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-title {
+            margin-bottom: 10px; /* Add some space between the title and the description */
+        }
+        .card-text {
+            flex: 1; /* Make the description take up the remaining space */
+        }
+        .card-footer {
+            margin-top: auto;
+        }
+        .portfolio-item {
+           display: none;
+           opacity: 0;
+           transition: opacity 0.5s ease-in-out;
+       }
+       .portfolio-item.visible {
+           display: flex;
+           opacity: 1;
+       }
+    </style>
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <!-- Include Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Include D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Include AOS JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Tyler Maginnis - Sr. Software Engineer</h1>
+        <p>Contact: 202-948-8888 | maginnist@gmail.com</p>
+    </header>
+
+    <section id="objective" data-aos="fade-up">
+        <h2>Objective</h2>
+        <p>Results-driven .NET Developer with 14 years of experience specializing in designing, developing, and deploying robust applications in Agile and enterprise environments. Proficient in leveraging Azure Cloud Platform (ACP), and skilled in managing Kubernetes clusters for scalable and resilient application deployment. Seeking to contribute my expertise in .NET development and cloud technologies to a forward-thinking organization, delivering innovative solutions and driving efficiency in software development processes.</p>
+    </section>
+
+    <section id="skills" data-aos="fade-up">
+        <h2>Key Skills</h2>
+        <!-- Skills will be dynamically inserted here -->
+        <div id="skills-container"></div>
+    </section>
+
+    <section id="portfolio" data-aos="fade-up">
+        <h2>GitHub Portfolio</h2>
+        <!-- Portfolio items will be dynamically inserted here -->
+        <div id="portfolio-container" class="row"></div>
+    </section>
+
+
+
+    <section id="experience" data-aos="fade-up">
+        <h2>Experience</h2>
+        <!-- Experience cards will be dynamically inserted here -->
+        <div id="experience-container"></div>
+    </section>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Initialize AOS -->
+    <script>
+        AOS.init();
+    </script>
+    <script type="text/javascript">
+        // Sample data for skills
+        const skillsData = [
+            { skill: 'GenAI Agentic Development', level: 8, fullSkill: 'Utilizing LangChain and other AI orchestration tools to optimize project efficiencies, semi-automating development and debugging.' },
+            { skill: '.NET Development', level: 10, fullSkill: '.NET Framework, .NET Core, .Net Standard, .Net 6/7, C#, F#, VisualBasic, PowerShell, ASP.NET, MVC, Web API, Maui LINQ, Entity Framework, ADO.NET, HTML, CSS, JavaScript, Angular, React, Vue.JS, Blazor, Microservices architecture, design patterns, WinForms, WPF, Telerik/KendoUI' },
+            { skill: 'T-SQL/PostgreSQL', level: 10, fullSkill: 'T-SQL/PostgreSQL: database design, query optimization, stored procedures, triggers, performance tuning' },
+            { skill: 'Azure Technologies', level: 9, fullSkill: 'Azure App Services, Azure Functions, Azure Logic Apps, Azure DevOps, Azure SQL Database, Cosmos DB, Blob Storage, Azure Active Directory, Azure Kubernetes Service (AKS), ARM templates, Bicep, Azure Monitor, Application Insights, Log Analytics' },
+            { skill: 'Kubernetes', level: 9, fullSkill: 'Kubernetes clusters, Helm, Docker, Kubernetes networking, storage, security' },
+            { skill: 'Agile Methodologies', level: 8, fullSkill: 'Agile principles, Scrum framework, cross-functional teams, JIRA, Azure Boards' },
+            { skill: 'Additional Skills', level: 9, fullSkill: 'Problem-solving, debugging, communication, teamwork, RESTful API design, Git, DevOps principles' }
+        ];
+
+        // Dynamically create skill bars
+        const skillsContainer = d3.select('#skills-container');
+
+        skillsData.forEach(function(d) {
+            let skillDiv = skillsContainer.append('div')
+                .attr('class', 'skill-bar')
+                .attr('data-aos', 'fade-right');
+
+            skillDiv.append('div')
+                .attr('class', 'skill-level')
+                .style('width', (d.level * 10) + '%');
+
+            skillDiv.append('span')
+                .attr('class', 'skill-label')
+                .attr('data-full-skill', d.fullSkill)
+                .text(d.skill);
+        });
+
+
+        // Sample data for portfolio
+        const portfolioData = [
+            {
+                title: 'SOLIDify',
+                description: 'SOLIDify is a C# project designed to analyze other C# projects for adherence to SOLID principles. The project leverages various design patterns to ensure a modular, maintainable, and scalable architecture.',
+                link: 'https://github.com/tylermaginnis/SOLIDify'
+            },
+            {
+                title: 'Advanced Organ Composition with Markov Chains',
+                description: 'This project demonstrates an advanced organ composition system using Markov Chains. The system allows users to generate and manipulate organ music through various controls and strategies. The composition is driven by Markov Chains to determine the next chord and melody strategies, creating a dynamic and evolving musical piece.',
+                link: 'https://tylermaginnis.github.io/JS_MarkovChainStrategyOrgan/'
+            },
+            {
+                title: 'Research_LinearFitSearch',
+                description: 'This project aims to compare the performance of several different search algorithms: Linear Fit Search, Binary Search, Interpolated Binary Search, Hybrid Search, Hybrid Interpolated Search, and Hybrid Adaptive Search. The comparison is based on various distributions of data, including random values, prime numbers, Fibonacci sequence, geometric progression, random gaps, and exponential growth.',
+                link: 'https://github.com/tylermaginnis/Research_LinearFitSearch'
+            },
+
+            {
+                title: 'Automated Insurance Claim Fraud Detection System',
+                description: 'This project aims to detect fraudulent insurance claims using machine learning techniques. The system enhances the security and efficiency of the insurance claims process by identifying potentially fraudulent claims. Key features include data ingestion and preprocessing, model training, SHAP analysis, and a web dashboard for visualizing results.',
+                link: 'https://github.com/tylermaginnis/AutomatedInsuranceFraudDetectionSystem'
+            },
+            {
+                title: 'BECS_SoftwareArchitecture',
+                description: 'This project provides a high-level overview of the architectural design for our next-generation Blood Establishment Computer System (BECS) platform. The architecture is designed to be scalable, secure, and aligned with our strategic goals. It includes detailed descriptions of various layers such as Client Layer, API Gateway Layer, Microservices Layer, Containerization Layer, Cloud Infrastructure Layer, CI/CD Pipeline, Security & Compliance, Monitoring & Optimization, and Design Considerations.',
+                link: 'https://github.com/tylermaginnis/BECS_SoftwareArchitecture'
+            },
+            {
+                title: 'PS_InformaticaX_SSIS',
+                description: 'This project provides tools for managing and validating SQL Server Integration Services (SSIS) packages. It includes scripts for converting PowerMart files to DTSX packages and validating DTSX files. Special emphasis is on the unique command-line utility for managing and validating SSIS packages, likely the only DTSX command-line utility available on the Internet. This tool provides a comprehensive set of features for adding connections, tasks, precedence constraints, variables, and enabling logging within SSIS packages.',
+                link: 'https://github.com/tylermaginnis/PS_InformaticaX_SSIS'
+            },
+            {
+                title: 'Mental Health Design System',
+                description: 'MentalHealthDesignSystem is a comprehensive UI component library designed specifically for mental health applications. This project leverages the power of Angular and Storybook to create reusable, testable, and visually appealing components that enhance the user experience for both patients and healthcare providers.',
+                link: 'https://github.com/tylermaginnis/MentalHealthDesignSystem'
+            },
+            {
+                title: 'ARM7TDMI Emulator',
+                description: 'This project is an emulator for the ARM7TDMI processor, written in C++. It includes implementations for various ARM instructions and a CPU model.',
+                link: 'https://github.com/tylermaginnis/ARM7TDMI-Emulator'
+            },
+            {
+                title: 'GO_DumpSniper',
+                description: 'A Go program that allows you to list processes running on a Windows system and snapshot and print the memory content from a specific memory address.',
+                link: 'https://github.com/tylermaginnis/GO_DumpSniper'
+            },
+            {
+                title: 'CyberSecurity POCs',
+                description: 'Proof of Concepts (POCs) Index: This document serves as an index for the various Proof of Concepts (POCs) developed as part of my cybersecurity research and testing.',
+                link: 'https://github.com/tylermaginnis/POCs'
+            }
+            // Add more projects as needed...
+        ];
+
+        // Dynamically create portfolio items
+        const portfolioContainer = d3.select('#portfolio-container');
+        const viewMoreBtn = document.getElementById('view-more-btn');
+
+        portfolioData.forEach(function(project, index) {
+           let card = portfolioContainer.append('div')
+               .attr('class', 'col-lg-3 col-md-4 col-sm-6 mb-3 portfolio-item')
+               .attr('data-aos', 'fade-up');
+
+           if (index > 0) {
+               card.classed('visible', true);
+           }
+
+           let cardBody = card.append('div')
+               .attr('class', 'card h-100');
+
+           let cardInnerBody = cardBody.append('div')
+               .attr('class', 'card-body');
+
+           cardInnerBody.append('h5')
+               .attr('class', 'card-title')
+               .text(project.title);
+
+           cardInnerBody.append('p')
+               .attr('class', 'card-text')
+               .text(project.description);
+
+           let cardFooter = cardBody.append('div')
+               .attr('class', 'card-footer');
+
+           cardFooter.append('a')
+               .attr('href', project.link)
+               .attr('class', 'btn btn-primary')
+               .text('View on GitHub');
+       });
+
+       
+        // Sample data for experience
+        const experienceData = [
+            {
+                title: 'Contract Software Engineer',
+                company: 'Perfect Your Customer, LLC.',
+                location: 'Remote',
+                duration: 'June 2023 - Present',
+                responsibilities: [
+                    'Developed and deployed a cross-platform mobile application and rewards program for the plastic surgery industry using AKS (Azure Kubernetes Service).',
+                    'Designed and implemented backend services with .NET 6 and ASP.NET MVC, utilizing microservices architecture for high performance and scalability.',
+                    'Utilized Azure DevOps for CI/CD, automating deployments and ensuring smooth integration and delivery processes.',
+                    'Leveraged T-SQL and PostgreSQL for database design, query optimization, and performance tuning, enhancing data management efficiency.',
+                    'Managed Kubernetes clusters, using Helm and Docker for scalable, resilient application deployment, and monitored performance with Azure Monitor and Application Insights.',
+                    'Utilized GenAI tool-chaining to optimize release cycle, reducing release time-to-market from 6 hours to 15 minutes.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Humana',
+                location: 'Remote',
+                duration: 'October 2022 – June 2023',
+                responsibilities: [
+                    'Collaborated on a team responsible for maintaining and micro-servicing the Producer Services application.',
+                    'Ensured seamless operation and scalability of critical services through effective microservices architecture.',
+                    'Implemented enhancements and updates to improve application performance and user experience.',
+                    'Utilized Agile methodologies to iterate and deliver features aligned with business objectives.',
+                    'Conducted troubleshooting and resolved issues promptly to maintain application reliability and uptime.',
+                    'Implemented Docker containers for microservices deployment, enhancing scalability and portability of healthcare applications.'
+                ]
+            },
+            {
+                title: 'Contract Software Architect',
+                company: 'American Barcode & RFID',
+                location: 'Remote',
+                duration: 'January 2022 – October 2022',
+                responsibilities: [
+                    'Led as a solution architect on a barcoding and supply chain program for a $2BN energy producer, utilizing .NET 6, ASP.NET MVC, and microservices architecture to streamline operations.',
+                    'Implemented Azure Kubernetes Service (AKS) for container orchestration, enhancing scalability and reliability of the application.',
+                    'Utilized Azure DevOps for CI/CD pipelines, automating deployment processes and ensuring efficient integration across development stages.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Raytheon Technologies',
+                location: 'Remote',
+                duration: 'November 2021 – January 2022',
+                responsibilities: [
+                    'Developed cross-platform Outlook web app and desktop app for regulatory compliance using Angular and .NET 6, ensuring seamless user experience across devices.',
+                    'Utilized Azure Kubernetes Service (AKS) for containerized deployment, enhancing scalability and performance of the applications.',
+                    'Implemented Azure SQL Database and Cosmos DB for data storage and management, ensuring compliance with regulatory standards.',
+                    'Followed Agile methodologies, collaborating with cross-functional teams to deliver iterative improvements and meet project milestones using Azure Boards.'
+                ]
+            },
+            {
+                title: 'Full-Time Software Developer',
+                company: 'American Queen Voyages',
+                location: 'Remote',
+                duration: 'November 2021 – January 2022',
+                responsibilities: [
+                    'Developed Yield Management tools using Terraform for infrastructure automation and orchestration, optimizing resource allocation and pricing strategies.',
+                    'Designed and implemented Data Warehousing solutions leveraging Azure SQL Database and Azure Data Factory for efficient data integration and reporting.',
+                    'Utilized .NET 6 and ASP.NET MVC for backend development, ensuring robust and scalable applications aligned with business objectives.',
+                    'Implemented Kubernetes clusters with Helm and Docker, enhancing application deployment, scalability, and security in a cloud-native environment.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Homecare Homebase',
+                location: 'Remote',
+                duration: 'March 2019 – August 2019',
+                responsibilities: [
+                    'Led performance optimization efforts for a scalable database set, focusing on MS SQL Databases, using T-SQL and Azure SQL Database technologies.',
+                    'Implemented advanced query optimization techniques and indexing strategies to enhance database performance and response times.',
+                    'Utilized Azure Monitor and Application Insights for monitoring and diagnosing database performance issues, ensuring optimal system efficiency.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'TP ICAP',
+                location: 'Remote',
+                duration: 'February 2018 – October 2018',
+                responsibilities: [
+                    'Developed and maintained a commodities brokerage trade-booking platform based on VB.Net and C#, utilizing WinForms for the frontend.',
+                    'Implemented robust backend functionalities using .NET Framework, ensuring efficient trade processing and data management.',
+                    'Designed and optimized T-SQL queries for the platform\'s SQL Server database, enhancing performance and scalability.',
+                    'Collaborated in Agile Scrum teams, utilizing JIRA for project management and ensuring timely delivery of features and enhancements.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Hydromax USA',
+                location: 'Remote',
+                duration: 'January 2018 – February 2018',
+                responsibilities: [
+                    'Developed and implemented a series of workflow APIs to support public infrastructure mapping and geo-information systems projects using .NET Core and ASP.NET Web API.',
+                    'Utilized T-SQL for database design and PostgreSQL for geo-information data storage, optimizing query performance and ensuring data integrity.',
+                    'Leveraged Azure SQL Database and Blob Storage for storing and managing geo-information data securely and efficiently.',
+                    'Followed Agile methodologies, collaborating with cross-functional teams and utilizing JIRA for project management to ensure timely delivery and alignment with stakeholder requirements.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Republic Bank',
+                location: 'Remote',
+                duration: 'October 2017 – February 2018',
+                responsibilities: [
+                    'Developed and maintained a tax-refund loan producer system, ensuring compliance with regulatory requirements and deadlines using .NET Framework and ASP.NET MVC.',
+                    'Implemented T-SQL for database design and optimization, enhancing system performance and data retrieval efficiency.',
+                    'Utilized Azure SQL Database for secure and scalable data storage, ensuring robust data management capabilities.',
+                    'Collaborated within Agile frameworks, including Scrum, to deliver iterative software solutions and meet project milestones effectively.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Peter Stone Jewelry',
+                location: 'Remote',
+                duration: 'June 2017 – October 2017',
+                responsibilities: [
+                    'Managed and maintained an ERP (Enterprise Resource Planning) system, leveraging .NET Framework and ASP.NET MVC to streamline business operations and enhance efficiency.',
+                    'Implemented T-SQL and PostgreSQL for database design, query optimization, and performance tuning within the ERP system.',
+                    'Utilized Azure SQL Database and Azure App Services to support the ERP system\'s backend infrastructure, ensuring scalability and reliability.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Cascade Financial Technology Corporation',
+                location: 'Remote',
+                duration: 'March 2017 – May 2017',
+                responsibilities: [
+                    'Developed and maintained a whitelabel payment card producer system, ensuring secure and efficient transaction processing using .NET Framework, C#, ASP.NET MVC, and SQL Server.',
+                    'Implemented microservices architecture to enhance modularity and scalability of the payment processing system.',
+                    'Utilized T-SQL for database design, query optimization, and stored procedures, ensuring high performance and reliability.',
+                    'Collaborated within Agile teams, utilizing Scrum framework and JIRA for effective project management and cross-functional collaboration.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'House Advantage',
+                location: 'Remote',
+                duration: 'September 2016 – May 2017',
+                responsibilities: [
+                    'Developed and maintained a Casino Management System (CMS) to optimize operations and enhance customer experience, utilizing .NET Framework, C#, ASP.NET MVC, and SQL Server.',
+                    'Implemented scalable database solutions with T-SQL, focusing on query optimization and performance tuning for efficient data management.',
+                    'Utilized Azure SQL Database for cloud-based data storage and management, ensuring secure and reliable data handling.',
+                    'Applied Agile methodologies in project management, collaborating with cross-functional teams to deliver timely and high-quality software solutions.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Computer Operations Research Enterprise',
+                location: 'Remote',
+                duration: 'February 2016 – September 2016',
+                responsibilities: [
+                    'Implemented OpenCV (Computer Vision) with Tesseract OCR to automate Anti-Money Laundering (AML) functions, enhancing detection and compliance processes.',
+                    'Developed .NET Framework applications for internal tools and automation scripts, improving operational efficiency.',
+                    'Utilized T-SQL for database design and optimization, enhancing data retrieval performance.',
+                    'Integrated Azure SQL Database for secure and scalable data storage solutions.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Gordon-Darby',
+                location: 'Remote',
+                duration: 'January 2014 – January 2015',
+                responsibilities: [
+                    'Developed and maintained a Hunting License Sales System for the Texas Department of Parks and Wildlife, ensuring compliance with regulatory requirements and enhancing user experience for hunters.',
+                    'Implemented a call center application in ASP.NET Classic, providing efficient customer service solutions.',
+                    'Utilized .NET Framework and ASP.NET for application development, ensuring robustness and scalability.',
+                    'Leveraged T-SQL for database design, query optimization, and stored procedures, optimizing performance for high-volume transactions.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Cinder',
+                location: 'Remote',
+                duration: 'January 2014 – January 2014',
+                responsibilities: [
+                    'Provided specialized point-of-sale consulting services, advising clients on optimizing retail operations and enhancing customer experience.',
+                    'Utilized .NET Framework and ASP.NET MVC to develop and customize point-of-sale solutions tailored to client needs.',
+                    'Implemented T-SQL for database design and optimization, ensuring efficient data management and retrieval.',
+                    'Collaborated within Agile teams using Scrum methodology, leveraging JIRA for project management and Azure Boards for task tracking.'
+                ]
+            },
+            {
+                title: 'Contract Software Developer',
+                company: 'Louisville Custom Technologies',
+                location: 'Remote',
+                duration: 'October 2009 - December 2013',
+                responsibilities: [
+                    'Provided consulting services to clients in the financial and healthcare sectors, specializing in IaaS and SaaS solutions.',
+                    'Advised clients on cloud infrastructure strategies, including the selection and implementation of IaaS platforms such as AWS, Azure, or Google Cloud.',
+                    'Designed and implemented SaaS applications tailored to meet regulatory compliance and operational efficiency requirements in healthcare and financial industries.',
+                    'Collaborated with cross-functional teams to assess client needs, develop technical solutions, and deliver customized IaaS and SaaS solutions.',
+                    'Conducted system assessments and audits to ensure security, scalability, and performance of cloud-based solutions.',
+                    'Delivered training and workshops to client teams on best practices for leveraging IaaS and SaaS technologies to optimize business operations.'
+                ]
+            }
+        ];
+
+        // Dynamically create experience cards
+        const experienceContainer = d3.select('#experience-container');
+
+        experienceData.forEach(function(exp) {
+            let card = experienceContainer.append('div')
+                .attr('class', 'card mb-3')
+                .attr('data-aos', 'fade-up');
+
+            let cardBody = card.append('div')
+                .attr('class', 'card-body');
+
+            cardBody.append('h5')
+                .attr('class', 'card-title')
+                .text(`${exp.title} at ${exp.company}`);
+
+            cardBody.append('h6')
+                .attr('class', 'card-subtitle mb-2 text-muted')
+                .text(`${exp.location} | ${exp.duration}`);
+
+            let ul = cardBody.append('ul');
+            exp.responsibilities.forEach(function(responsibility) {
+                ul.append('li').text(responsibility);
+            });
+        });
+
+            document.addEventListener("DOMContentLoaded", function() {
+            // Get the button
+            let mybutton = document.getElementById("back-to-top");
+
+            // When the user scrolls down 20px from the top of the document, show the button
+            window.onscroll = function() {scrollFunction()};
+
+            function scrollFunction() {
+                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    mybutton.style.display = "block";
+                } else {
+                    mybutton.style.display = "none";
+                }
+            }
+
+            // When the user clicks on the button, scroll to the top of the document
+            mybutton.onclick = function() {
+                document.body.scrollTop = 0; // For Safari
+                document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+            }
+        });
+
+    </script>
+
+    <button id="back-to-top" class="btn btn-primary" title="Go to top">Back to Top</button>
+
+</body>
+</html>

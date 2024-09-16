@@ -1,0 +1,146 @@
+TYLER MAGINNIS - Sr. Software Engineer
+202-948-8888
+maginnist@gmail.com
+
+OBJECTIVE
+Results-driven .NET Developer with 14 years of experience specializing in designing, developing, and deploying robust applications in Agile and enterprise environments. Proficient in leveraging Azure Cloud Platform (ACP), and skilled in managing Kubernetes clusters for scalable and resilient application deployment. Seeking to contribute my expertise in .NET development and cloud technologies to a forward-thinking organization, delivering innovative solutions and driving efficiency in software development processes.
+KEY SKILLS
+GenAI Agentic Development
+	Utilizing LangChain and other AI orchestration tools to optimize project efficiencies, semi-automating development and debugging.
+.NET Development
+	.NET Framework, .NET Core, .Net Standard, .Net 6/7, C#, F#, VisualBasic, PowerShell, ASP.NET, MVC, Web API, Maui LINQ, Entity Framework, ADO.NET, HTML, CSS, JavaScript, Angular, React, Vue.JS, Blazor, Microservices architecture, design patterns, WinForms, WPF, Telerik/KendoUI
+T-SQL/PostgreSQL
+	T-SQL/PostgreSQL: database design, query optimization, stored procedures, triggers, performance tuning
+Azure Technologies
+	Azure App Services, Azure Functions, Azure Logic Apps, Azure DevOps, Azure SQL Database, Cosmos DB, Blob Storage, Azure Active Directory, Azure Kubernetes Service (AKS), ARM templates, Bicep, Azure Monitor, Application Insights, Log Analytics
+Kubernetes
+	Kubernetes clusters, Helm, Docker, Kubernetes networking, storage, security
+Agile Methodologies
+	Agile principles, Scrum framework, cross-functional teams, JIRA, Azure Boards
+Additional Skills
+	Problem-solving, debugging, communication, teamwork, RESTful API design, Git, DevOps principles
+
+EXPERIENCE
+Contract Software Engineer
+Remote	40 hours / week
+Perfect Your Customer, LLC.	June 2023 - Present
+•	Developed and deployed a cross-platform mobile application and rewards program for the plastic surgery industry using AKS (Azure Kubernetes Service).
+•	Designed and implemented backend services with .NET 6 and ASP.NET MVC, utilizing microservices architecture for high performance and scalability.
+•	Utilized Azure DevOps for CI/CD, automating deployments and ensuring smooth integration and delivery processes.
+•	Leveraged T-SQL and PostgreSQL for database design, query optimization, and performance tuning, enhancing data management efficiency.
+•	Managed Kubernetes clusters, using Helm and Docker for scalable, resilient application deployment, and monitored performance with Azure Monitor and Application Insights.
+•	Utilized GenAI tool-chaining to optimize release cycle, reducing release time-to-market from 6 hours to 15 minutes 
+
+Contract Software Developer
+Remote	40 hours / week
+Humana	October 2022– June 2023
+•	Collaborated on a team responsible for maintaining and micro-servicing the Producer Services application.
+•	Ensured seamless operation and scalability of critical services through effective microservices architecture.
+•	Implemented enhancements and updates to improve application performance and user experience.
+•	Utilized Agile methodologies to iterate and deliver features aligned with business objectives.
+•	Conducted troubleshooting and resolved issues promptly to maintain application reliability and uptime.
+•	Implemented Docker containers for microservices deployment, enhancing scalability and portability of healthcare applications.
+
+Contract Software Architect
+Remote	40 hours / week
+American Barcode & RFID	January 2022 – October 2022
+•	Led as a solution architect on a barcoding and supply chain program for a $2BN energy producer, utilizing .NET 6, ASP.NET MVC, and microservices architecture to streamline operations.
+•	Implemented Azure Kubernetes Service (AKS) for container orchestration, enhancing scalability and reliability of the application.
+•	Utilized Azure DevOps for CI/CD pipelines, automating deployment processes and ensuring efficient integration across development stages.
+Contract Software Architect
+Remote	40 hours / week
+Raytheon Technologies	November 2021– January 2022
+•	Developed cross-platform Outlook web app and desktop app for regulatory compliance using Angular and .NET 6, ensuring seamless user experience across devices.
+•	Utilized Azure Kubernetes Service (AKS) for containerized deployment, enhancing scalability and performance of the applications.
+•	Implemented Azure SQL Database and Cosmos DB for data storage and management, ensuring compliance with regulatory standards.
+•	Followed Agile methodologies, collaborating with cross-functional teams to deliver iterative improvements and meet project milestones using Azure Boards.
+
+
+Full-Time  Software Developer
+Remote	40 hours / week
+American Queen Voyages	November 2021– January 2022
+•	Developed Yield Management tools using Terraform for infrastructure automation and orchestration, optimizing resource allocation and pricing strategies.
+•	Designed and implemented Data Warehousing solutions leveraging Azure SQL Database and Azure Data Factory for efficient data integration and reporting.
+•	Utilized .NET 6 and ASP.NET MVC for backend development, ensuring robust and scalable applications aligned with business objectives.
+•	Implemented Kubernetes clusters with Helm and Docker, enhancing application deployment, scalability, and security in a cloud-native environment.
+
+
+Contract Software Developer
+Remote	40 hours / week
+Homecare Homebase	March 2019 – August 2019
+•	Led performance optimization efforts for a scalable database set, focusing on MS SQL Databases, using T-SQL and Azure SQL Database technologies.
+•	Implemented advanced query optimization techniques and indexing strategies to enhance database performance and response times.
+•	Utilized Azure Monitor and Application Insights for monitoring and diagnosing database performance issues, ensuring optimal system efficiency.
+
+Contract Software Developer	40 hours / week
+TP ICAP	February 2018 – October 2018 
+•	Developed and maintained a commodities brokerage trade-booking platform based on VB.Net and C#, utilizing WinForms for the frontend.
+•	Implemented robust backend functionalities using .NET Framework, ensuring efficient trade processing and data management.
+•	Designed and optimized T-SQL queries for the platform's SQL Server database, enhancing performance and scalability.
+•	Collaborated in Agile Scrum teams, utilizing JIRA for project management and ensuring timely delivery of features and enhancements.
+
+Contract Software Developer	40 hours / week
+Hydromax USA	January 2018 – February 2018 
+•	Developed and implemented a series of workflow APIs to support public infrastructure mapping and geo-information systems projects using .NET Core and ASP.NET Web API.
+•	Utilized T-SQL for database design and PostgreSQL for geo-information data storage, optimizing query performance and ensuring data integrity.
+•	Leveraged Azure SQL Database and Blob Storage for storing and managing geo-information data securely and efficiently.
+•	Followed Agile methodologies, collaborating with cross-functional teams and utilizing JIRA for project management to ensure timely delivery and alignment with stakeholder requirements.
+
+Contract Software Developer	40 hours / week
+Republic Bank	October 2017 – February 2018
+•	Developed and maintained a tax-refund loan producer system, ensuring compliance with regulatory requirements and deadlines using .NET Framework and ASP.NET MVC.
+•	Implemented T-SQL for database design and optimization, enhancing system performance and data retrieval efficiency.
+•	Utilized Azure SQL Database for secure and scalable data storage, ensuring robust data management capabilities.
+•	Collaborated within Agile frameworks, including Scrum, to deliver iterative software solutions and meet project milestones effectively.
+
+Contract Software Developer	40 hours / week
+Peter Stone Jewelry	June 2017 – October 2017
+•	Managed and maintained an ERP (Enterprise Resource Planning) system, leveraging .NET Framework and ASP.NET MVC to streamline business operations and enhance efficiency.
+•	Implemented T-SQL and PostgreSQL for database design, query optimization, and performance tuning within the ERP system.
+•	Utilized Azure SQL Database and Azure App Services to support the ERP system's backend infrastructure, ensuring scalability and reliability.
+•	Implemented Agile methodologies, participated in Scrum ceremonies, and collaborated with cross-functional teams using JIRA for project management.
+
+Contract Software Developer	40 hours / week
+Cascade Financial Technology Corporation	March 2017 – May 2017
+•	Developed and maintained a whitelabel payment card producer system, ensuring secure and efficient transaction processing using .NET Framework, C#, ASP.NET MVC, and SQL Server.
+•	Implemented microservices architecture to enhance modularity and scalability of the payment processing system.
+•	Utilized T-SQL for database design, query optimization, and stored procedures, ensuring high performance and reliability.
+•	Collaborated within Agile teams, utilizing Scrum framework and JIRA for effective project management and cross-functional collaboration.
+
+Contract Software Developer	40 hours / week
+House Advantage	September 2016 – May 2017
+•	Developed and maintained a Casino Management System (CMS) to optimize operations and enhance customer experience, utilizing .NET Framework, C#, ASP.NET MVC, and SQL Server.
+•	Implemented scalable database solutions with T-SQL, focusing on query optimization and performance tuning for efficient data management.
+•	Utilized Azure SQL Database for cloud-based data storage and management, ensuring secure and reliable data handling.
+•	Applied Agile methodologies in project management, collaborating with cross-functional teams to deliver timely and high-quality software solutions.
+
+Contract Software Developer	40 hours / week
+Computer Operations Research Enterprise	February 2016 – September 2016
+•	Implemented OpenCV (Computer Vision) with Tesseract OCR to automate Anti-Money Laundering (AML) functions, enhancing detection and compliance processes.
+•	Developed .NET Framework applications for internal tools and automation scripts, improving operational efficiency.
+•	Utilized T-SQL for database design and optimization, enhancing data retrieval performance.
+•	Integrated Azure SQL Database for secure and scalable data storage solutions.
+
+
+Contract Software Developer	40 hours / week
+Gordon-Darby	January 2014 – January 2015
+•	Developed and maintained a Hunting License Sales System for the Texas Department of Parks and Wildlife, ensuring compliance with regulatory requirements and enhancing user experience for hunters.
+•	Implemented a call center application in ASP.NET Classic, providing efficient customer service solutions.
+•	Utilized .NET Framework and ASP.NET for application development, ensuring robustness and scalability.
+•	Leveraged T-SQL for database design, query optimization, and stored procedures, optimizing performance for high-volume transactions.
+
+Contract Software Developer	40 hours / week
+Cinder	January 2014 – January 2014
+•	Provided specialized point-of-sale consulting services, advising clients on optimizing retail operations and enhancing customer experience.
+•	Utilized .NET Framework and ASP.NET MVC to develop and customize point-of-sale solutions tailored to client needs.
+•	Implemented T-SQL for database design and optimization, ensuring efficient data management and retrieval.
+•	Collaborated within Agile teams using Scrum methodology, leveraging JIRA for project management and Azure Boards for task tracking.
+
+Contract Software Developer	40 hours / week
+Louisville Custom Technologies 	October 2009 - December 2013
+•	Provided consulting services to clients in the financial and healthcare sectors, specializing in IaaS and SaaS solutions.
+•	Advised clients on cloud infrastructure strategies, including the selection and implementation of IaaS platforms such as AWS, Azure, or Google Cloud.
+•	Designed and implemented SaaS applications tailored to meet regulatory compliance and operational efficiency requirements in healthcare and financial industries.
+•	Collaborated with cross-functional teams to assess client needs, develop technical solutions, and deliver customized IaaS and SaaS solutions.
+•	Conducted system assessments and audits to ensure security, scalability, and performance of cloud-based solutions.
+•	Delivered training and workshops to client teams on best practices for leveraging IaaS and SaaS technologies to optimize business operations.
