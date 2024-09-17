@@ -3,6 +3,9 @@
 ## Overview
 This project is an interactive resume for Tyler Maginnis, a Sr. Software Engineer. The resume is built using HTML, CSS, and JavaScript, and leverages various libraries and frameworks to enhance its functionality and appearance.
 
+## Live Demo
+Check out the live demo of the interactive resume [here](https://tylermaginnis.github.io/InteractiveResume/).
+
 ## Features
 - **Responsive Design**: Utilizes Bootstrap for a responsive layout that works on various devices.
 - **Animations**: Includes AOS (Animate On Scroll) library for smooth scrolling animations.
