@@ -372,59 +372,59 @@
 </head>
 <body>
     <!-- Dark Mode Toggle Button -->
-    <button id="toggleDarkMode" aria-label="Toggle Dark Mode">
-        <i class="fas fa-moon"></i>
+    <button id="toggleDarkMode" aria-label="Toggle Dark Mode" tabindex="0">
+        <i class="fas fa-moon" aria-hidden="true"></i>
     </button>
 
     <!-- Header with Navigation -->
     <header>
         <h1>Tyler Maginnis - Sr. Software Engineer</h1>
         <p>Contact: 202-948-8888 | <a href="mailto:maginnist@gmail.com">maginnist@gmail.com</a></p>
-        <nav class="nav-links">
-            <a href="#objective">Objective</a>
-            <a href="#skills">Skills</a>
-            <a href="#portfolio">Portfolio</a>
-            <a href="#experience">Experience</a>
+        <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+            <a href="#objective" tabindex="0">Objective</a>
+            <a href="#skills" tabindex="0">Skills</a>
+            <a href="#portfolio" tabindex="0">Portfolio</a>
+            <a href="#experience" tabindex="0">Experience</a>
         </nav>
     </header>
 
     <!-- Objective Section -->
-    <section id="objective" data-aos="fade-up">
+    <section id="objective" data-aos="fade-up" tabindex="0" aria-labelledby="objective">
         <h2>Objective</h2>
         <p>Results-driven .NET Developer with 14 years of experience specializing in designing, developing, and deploying robust applications in Agile and enterprise environments. Proficient in leveraging Azure Cloud Platform (ACP), and skilled in managing Kubernetes clusters for scalable and resilient application deployment. Seeking to contribute my expertise in .NET development and cloud technologies to a forward-thinking organization, delivering innovative solutions and driving efficiency in software development processes.</p>
     </section>
 
     <!-- Skills Section -->
-    <section id="skills" data-aos="fade-up">
+    <section id="skills" data-aos="fade-up" tabindex="0" aria-labelledby="skills">
         <h2>Key Skills</h2>
-        <div id="skills-container"></div>
+        <div id="skills-container" role="region" aria-labelledby="skills"></div>
     </section>
 
     <!-- Portfolio Section -->
-    <section id="portfolio" data-aos="fade-up">
+    <section id="portfolio" data-aos="fade-up" tabindex="0" aria-labelledby="portfolio">
         <h2>GitHub Portfolio</h2>
-        <div id="portfolio-container" class="row"></div>
-        <div class="view-more-btn" id="view-more-btn">View More <i class="fas fa-arrow-down"></i></div>
+        <div id="portfolio-container" class="row" role="region" aria-labelledby="portfolio"></div>
+        <div class="view-more-btn" id="view-more-btn" role="button" tabindex="0" aria-label="View more portfolio items">View More <i class="fas fa-arrow-down" aria-hidden="true"></i></div>
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" data-aos="fade-up">
+    <section id="experience" data-aos="fade-up" tabindex="0" aria-labelledby="experience">
         <h2>Experience</h2>
-        <div id="experience-container"></div>
+        <div id="experience-container" role="region" aria-labelledby="experience"></div>
     </section>
 
     <!-- Back-to-Top Button -->
-    <button id="back-to-top" title="Go to top">
-        <i class="fas fa-arrow-up"></i>
+    <button id="back-to-top" title="Go to top" aria-label="Back to top" tabindex="0">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
     </button>
 
     <!-- Portfolio Modal Template -->
-    <div id="portfolio-modal" class="modal-custom">
+    <div id="portfolio-modal" class="modal-custom" role="dialog" aria-labelledby="modal-title" aria-modal="true">
         <div class="modal-content-custom">
-            <span class="close-modal">&times;</span>
+            <span class="close-modal" tabindex="0" aria-label="Close modal">&times;</span>
             <h2 id="modal-title">Project Title</h2>
             <p id="modal-description">Project Description</p>
-            <a href="#" target="_blank" id="modal-link" class="btn btn-primary">View on GitHub</a>
+            <a href="#" target="_blank" id="modal-link" class="btn btn-primary" aria-label="View on GitHub">View on GitHub</a>
         </div>
     </div>
 
@@ -584,15 +584,21 @@
             modalDescription.textContent = project.description;
             modalLink.href = project.link;
             modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            closeModalBtn.focus(); // Focus on close button when modal opens
         }
 
         closeModalBtn.onclick = function() {
             modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            toggleDarkModeBtn.focus(); // Return focus to toggle button
         }
 
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                toggleDarkModeBtn.focus(); // Return focus to toggle button
             }
         }
 
@@ -843,7 +849,7 @@
             document.body.classList.toggle('dark-mode');
             // Toggle icon
             toggleDarkModeBtn.innerHTML = document.body.classList.contains('dark-mode') ?
-                '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                '<i class="fas fa-sun" aria-hidden="true"></i>' : '<i class="fas fa-moon" aria-hidden="true"></i>';
         });
 
         // Lazy Loading Images (if any images are added in the future)
