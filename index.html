@@ -42,7 +42,7 @@
         body.dark-mode {
             --background-color: #121212;
             --text-color: #ffffff; /* Changed to ensure text is visible in dark mode */
-            --primary-color: #e74c3c;
+            --primary-color: purple;
             --secondary-color: #e74c3c;
         }
 
@@ -57,18 +57,18 @@
         }
 
         a {
-            color: var(--primary-color);
+            color: var(--text-color);
             text-decoration: none;
             transition: color var(--transition-speed);
         }
 
         a:hover {
-            color: var(--secondary-color);
+            color: var(--text-color);
         }
 
         /* Header Styles */
         header {
-            background-color: var(--secondary-color);
+            background-color: var(--primary-color);
             color: #fff;
             padding: 40px 0;
             text-align: center;
@@ -294,7 +294,7 @@
             margin: 20px auto;
             text-align: center;
             cursor: pointer;
-            color: var(--primary-color);
+            color: white;
             transition: color var(--transition-speed);
         }
 
@@ -351,18 +351,18 @@
 
     /* Link Styles */
     a {
-        color: var(--primary-color);
+        color: white;
         text-decoration: none;
         transition: color var(--transition-speed);
     }
 
     a:focus, a:active {
-        color: var(--secondary-color); /* Change color on focus and active state */
+        color: white; /* Change color on focus and active state */
         outline: none; /* Remove default outline */
     }
 
     a:hover {
-        color: #ffcc00; /* A brighter color for hover effect */
+        color: white; /* A brighter color for hover effect */
     }
 
     body.dark-mode a {
