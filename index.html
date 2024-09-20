@@ -25,11 +25,8 @@
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style type="text/css">
         /* CSS Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* Hide all elements except the 3D toggle button */
+
 
         ul {
             list-style-type: none !important; /* Remove bullet points globally */
@@ -392,20 +389,21 @@
 </head>
 <body>
     <!-- Dark Mode Toggle Button -->
-    <button id="toggleDarkMode" aria-label="Toggle Dark Mode" tabindex="0">
-        <i class="fas fa-moon" aria-hidden="true"></i>
+    <button id="toggleDarkMode" class="hide-exclude" aria-label="Toggle Dark Mode" tabindex="0">
+        <i class="fas fa-moon" class="hide-exclude" aria-hidden="true"></i>
     </button>
 
     <!-- 3D Mode Toggle Button -->
-    <button id="toggle3DMode" aria-label="Toggle 3D Mode" tabindex="0">
-        <i class="fas fa-cube" aria-hidden="true"></i>
+    <button id="toggle3DMode" class="hide-exclude" aria-label="Toggle 3D Mode" tabindex="0">
+
+        <i class="fas fa-cube" class="hide-exclude" aria-hidden="true"></i>
     </button>
 
     <!-- Header with Navigation -->
-    <header>
+    <header class="hide-exclude">
         <h1>Tyler Maginnis - Sr. Software Engineer</h1>
-        <p>Contact: 202-948-8888 | <a href="mailto:maginnist@gmail.com">maginnist@gmail.com</a></p>
-        <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+        <p class="hide-me">Contact: 202-948-8888 | <a href="mailto:maginnist@gmail.com">maginnist@gmail.com</a></p>
+        <nav class="nav-links hide-me" role="navigation" aria-label="Main Navigation">
             <a href="#objective" tabindex="0">Objective</a>
             <a href="#skills" tabindex="0">Skills</a>
             <a href="#portfolio" tabindex="0">Portfolio</a>
@@ -414,13 +412,13 @@
     </header>
 
     <!-- Objective Section -->
-    <section id="objective" data-aos="fade-up" tabindex="0" aria-labelledby="objective">
+    <section id="objective" class="hide-me" data-aos="fade-up" tabindex="0" aria-labelledby="objective">
         <h2>Objective</h2>
         <p>Results-driven .NET Developer with 14 years of experience specializing in designing, developing, and deploying robust applications in Agile and enterprise environments. Proficient in leveraging Azure Cloud Platform (ACP), and skilled in managing Kubernetes clusters for scalable and resilient application deployment. Seeking to contribute my expertise in .NET development and cloud technologies to a forward-thinking organization, delivering innovative solutions and driving efficiency in software development processes.</p>
     </section>
 
     <!-- Skills Section -->
-    <section id="skills" data-aos="fade-up" tabindex="0" aria-labelledby="skills">
+    <section id="skills" class="hide-me" data-aos="fade-up" tabindex="0" aria-labelledby="skills">
         <h2>Key Skills</h2>
         <div id="skills-container" role="region" aria-labelledby="skills"></div>
     </section>
@@ -429,20 +427,20 @@
     <canvas id="babylon-container"></canvas>
 
     <!-- Portfolio Section -->
-    <section id="portfolio" data-aos="fade-up" tabindex="0" aria-labelledby="portfolio">
+    <section id="portfolio" class="hide-me" data-aos="fade-up" tabindex="0" aria-labelledby="portfolio">
         <h2>GitHub Portfolio</h2>
         <div id="portfolio-container" class="row" role="region" aria-labelledby="portfolio"></div>
         <div class="view-more-btn" id="view-more-btn" role="button" tabindex="0" aria-label="View more portfolio items">View More <i class="fas fa-arrow-down" aria-hidden="true"></i></div>
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" data-aos="fade-up" tabindex="0" aria-labelledby="experience">
+    <section id="experience" class="hide-me" data-aos="fade-up" tabindex="0" aria-labelledby="experience">
         <h2>Experience</h2>
         <div id="experience-container" role="region" aria-labelledby="experience"></div>
     </section>
 
     <!-- Back-to-Top Button -->
-    <button id="back-to-top" title="Go to top" aria-label="Back to top" tabindex="0">
+    <button id="back-to-top" class="hide-me" title="Go to top" aria-label="Back to top" tabindex="0">
         <i class="fas fa-arrow-up" aria-hidden="true"></i>
     </button>
 
@@ -883,12 +881,51 @@
         // 3D Mode Toggle Functionality
         const toggle3DModeBtn = document.getElementById('toggle3DMode');
         const babylonContainer = document.getElementById('babylon-container');
-
         toggle3DModeBtn.addEventListener('click', () => {
-            babylonContainer.style.display = babylonContainer.style.display === 'block' ? 'none' : 'block';
-            if (babylonContainer.style.display === 'block') {
+            document.body.classList.toggle('hide-all');
+            babylonContainer.style.display = document.body.classList.contains('hide-all') ? 'block' : 'none';
+
+
+
+            
+            const elementsToHide = document.querySelectorAll('body > *:not(#babylon-container)');
+            elementsToHide.forEach(element => {
+                if (element.classList.contains('hide-exclude')) {
+                    element.style.display = 'block';
+                    const innerIcon = element.querySelector('i');
+                    if (innerIcon) {
+                        innerIcon.style.display = 'block';
+                    }
+                } else if (element.classList.contains('hide-me')) {
+                    element.style.display = document.body.classList.contains('hide-all') ? 'none' : 'block';
+                }
+            });
+            if (document.body.classList.contains('hide-all')) {
                 create3DScene(); // Create the 3D scene when displayed
             }
+            const headerExclude = document.querySelector('header.hide-exclude');
+            if (headerExclude) {
+
+                const pTag = headerExclude.querySelector('p');
+                const navTag = headerExclude.querySelector('nav');
+                if (pTag) pTag.style.display = 'none';
+                if (navTag) navTag.style.display = 'none';
+            } else {
+                headerExclude.style.display = 'block';
+                const pTag = headerExclude.querySelector('p');
+                const navTag = headerExclude.querySelector('nav');
+                if (pTag) pTag.style.display = 'block';
+                if (navTag) navTag.style.display = 'block';
+                headerExclude.style.display = 'none';
+            }
+
+            const headerMe = document.querySelector('header.hide-me');
+            if (headerMe) {
+                headerMe.style.display = 'block';
+            } else {
+                headerMe.style.display = 'none';
+            }
+
         });
 
 // Function to display detailed information
