@@ -12,10 +12,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
     <!-- Include Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <!-- Include D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- Include AOS JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- Include BabylonJS -->
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script> <!-- Include the GUI module -->
+
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style type="text/css">
         /* CSS Reset */
         * {
@@ -89,7 +96,7 @@
         }
 
         /* Dark Mode Toggle Button */
-        #toggleDarkMode {
+        #toggleDarkMode, #toggle3DMode {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -103,7 +110,11 @@
             z-index: 1001;
         }
 
-        #toggleDarkMode:hover {
+        #toggle3DMode {
+            right: 80px; /* Adjust position for 3D mode toggle button */
+        }
+
+        #toggleDarkMode:hover, #toggle3DMode:hover {
             background-color: var(--secondary-color);
             transform: scale(1.1);
         }
@@ -349,31 +360,45 @@
             color: lightgray !important; /* Ensure text is visible */
         }
 
-    /* Link Styles */
-    a {
-        color: white;
-        text-decoration: none;
-        transition: color var(--transition-speed);
-    }
+        /* Link Styles */
+        a {
+            color: white;
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
 
-    a:focus, a:active {
-        color: white; /* Change color on focus and active state */
-        outline: none; /* Remove default outline */
-    }
+        a:focus, a:active {
+            color: white; /* Change color on focus and active state */
+            outline: none; /* Remove default outline */
+        }
 
-    a:hover {
-        color: white; /* A brighter color for hover effect */
-    }
+        a:hover {
+            color: white; /* A brighter color for hover effect */
+        }
 
-    body.dark-mode a {
-        color: lightgray;
-    }
+        body.dark-mode a {
+            color: lightgray;
+        }
+
+        /* BabylonJS Canvas */
+        #babylon-container {
+            display: none; /* Hidden by default */
+            width: 100%;
+            height: 600px;
+            border: 1px solid var(--secondary-color);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <!-- Dark Mode Toggle Button -->
     <button id="toggleDarkMode" aria-label="Toggle Dark Mode" tabindex="0">
         <i class="fas fa-moon" aria-hidden="true"></i>
+    </button>
+
+    <!-- 3D Mode Toggle Button -->
+    <button id="toggle3DMode" aria-label="Toggle 3D Mode" tabindex="0">
+        <i class="fas fa-cube" aria-hidden="true"></i>
     </button>
 
     <!-- Header with Navigation -->
@@ -399,6 +424,9 @@
         <h2>Key Skills</h2>
         <div id="skills-container" role="region" aria-labelledby="skills"></div>
     </section>
+
+    <!-- BabylonJS Container -->
+    <canvas id="babylon-container"></canvas>
 
     <!-- Portfolio Section -->
     <section id="portfolio" data-aos="fade-up" tabindex="0" aria-labelledby="portfolio">
@@ -852,71 +880,216 @@
                 '<i class="fas fa-sun" aria-hidden="true"></i>' : '<i class="fas fa-moon" aria-hidden="true"></i>';
         });
 
-        // Lazy Loading Images (if any images are added in the future)
-        const lazyImages = document.querySelectorAll('img.lazy');
+        // 3D Mode Toggle Functionality
+        const toggle3DModeBtn = document.getElementById('toggle3DMode');
+        const babylonContainer = document.getElementById('babylon-container');
 
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    img.classList.remove('lazy');
-                    img.classList.add('loaded');
-                    observer.unobserve(img);
-                }
-            });
-        }, {
-            rootMargin: '0px 0px 50px 0px',
-            threshold: 0.01
-        });
-
-        lazyImages.forEach(img => {
-            imageObserver.observe(img);
-        });
-
-        // Smooth Scrolling for Navigation Links
-        document.querySelectorAll('header .nav-links a').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetID = this.getAttribute('href').substring(1);
-                const targetSection = document.getElementById(targetID);
-                if (targetSection) {
-                    window.scrollTo({
-                        top: targetSection.offsetTop - 80, // Adjust for fixed header
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // View More Portfolio Items
-        const viewMoreBtn = document.getElementById('view-more-btn');
-        const portfolioItems = document.querySelectorAll('.portfolio-item');
-        let portfolioVisibleCount = 4; // Initial number of visible items
-
-        viewMoreBtn.addEventListener('click', () => {
-            portfolioItems.forEach((item, index) => {
-                if (index < portfolioVisibleCount + 4) { // Load 4 more items on each click
-                    item.classList.add('visible');
-                }
-            });
-            portfolioVisibleCount += 4;
-            if (portfolioVisibleCount >= portfolioItems.length) {
-                viewMoreBtn.style.display = 'none';
+        toggle3DModeBtn.addEventListener('click', () => {
+            babylonContainer.style.display = babylonContainer.style.display === 'block' ? 'none' : 'block';
+            if (babylonContainer.style.display === 'block') {
+                create3DScene(); // Create the 3D scene when displayed
             }
         });
 
-        // Initialize the first set of portfolio items as visible
-        window.addEventListener('DOMContentLoaded', () => {
-            portfolioItems.forEach((item, index) => {
-                if (index < portfolioVisibleCount) {
-                    item.classList.add('visible');
-                }
+        // Create 3D Scene with Babylon.js
+        // Function to display detailed information
+            // Function to display detailed information
+            function displayInfo(title, description) {
+            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+            const panel = new BABYLON.GUI.StackPanel();
+            panel.width = "50%";
+            panel.height = "50%";
+            panel.background = "black";
+            panel.color = "white";
+            panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+            advancedTexture.addControl(panel);
+
+            const header = new BABYLON.GUI.TextBlock();
+            header.text = title;
+            header.height = "40px";
+            header.color = "white";
+            header.fontSize = 24;
+            panel.addControl(header);
+
+            const textBlock = new BABYLON.GUI.TextBlock();
+            textBlock.text = description;
+            textBlock.color = "white";
+            textBlock.fontSize = 18;
+            textBlock.textWrapping = true;
+            panel.addControl(textBlock);
+
+            const closeButton = new BABYLON.GUI.Button.CreateSimpleButton("closeButton", "Close");
+            closeButton.width = "100px";
+            closeButton.height = "40px";
+            closeButton.color = "white";
+            closeButton.background = "red";
+            closeButton.onPointerUpObservable.add(function() {
+                advancedTexture.dispose();
             });
-            if (portfolioVisibleCount >= portfolioItems.length) {
-                viewMoreBtn.style.display = 'none';
-            }
-        });
+            panel.addControl(closeButton);
+        }
+
+        // Create 3D Scene with Babylon.js
+        function create3DScene() {
+            const canvas = document.getElementById('babylon-container'); // Get the canvas element
+            const engine = new BABYLON.Engine(canvas, true); // Create the engine
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0, 0, 0); // Set the background color to black
+
+            // Create a camera
+            const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 60, new BABYLON.Vector3(0, 0, 0), scene);
+            camera.setPosition(new BABYLON.Vector3(0, 25, 0)); // Set the camera position to a higher point for a more zoomed-out view
+            camera.alpha = -Math.PI / 6; // Set the camera angle
+            camera.beta = Math.PI / 3.5; // Set the camera elevation angle
+            camera.attachControl(canvas, true);
+
+            // Create a light
+            const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+
+
+            // Create skill pyramids
+            const radius = 10; // Radius of the circle
+            const angleStep = (2 * Math.PI) / skillsData.length; // Angle between each skill
+            // Add entropic background particle effect to the wireframe
+            const sparkParticleSystem = new BABYLON.ParticleSystem("sparks", 500, scene); // Reduced particle count
+            sparkParticleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+            sparkParticleSystem.emitter = new BABYLON.Vector3(0, 0, 0); // the mesh to emit from
+            sparkParticleSystem.minEmitBox = new BABYLON.Vector3(-radius, 0, -radius); // Starting all from
+            sparkParticleSystem.maxEmitBox = new BABYLON.Vector3(radius, 0.1, radius); // To...
+
+            sparkParticleSystem.color1 = new BABYLON.Color4(1, 0.5, 0.5, 0.1); // Softer color
+            sparkParticleSystem.color2 = new BABYLON.Color4(0.5, 0.5, 1, 0.1); // Softer color
+            sparkParticleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+
+            sparkParticleSystem.minSize = 0.1; // Increased size
+            sparkParticleSystem.maxSize = 0.2; // Increased size
+
+            sparkParticleSystem.minLifeTime = 0.3;
+            sparkParticleSystem.maxLifeTime = 2.5;
+
+            sparkParticleSystem.emitRate = 500; // Reduced emit rate
+
+            sparkParticleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+
+            sparkParticleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+
+            sparkParticleSystem.direction1 = new BABYLON.Vector3(-1, -1, -1); // More random directions
+            sparkParticleSystem.direction2 = new BABYLON.Vector3(1, 1, 1); // More random directions
+
+            sparkParticleSystem.minAngularSpeed = 0;
+            sparkParticleSystem.maxAngularSpeed = Math.PI * 2;
+
+            sparkParticleSystem.minEmitPower = 0.5;
+            sparkParticleSystem.maxEmitPower = 2.0;
+            sparkParticleSystem.updateSpeed = 0.005;
+
+            sparkParticleSystem.start();
+            // Add intense radiant glow to the particles
+            const glowLayer = new BABYLON.GlowLayer("glow", scene);
+            glowLayer.intensity = 2.0; // Further increase the intensity for a more radiant glow
+            glowLayer.addIncludedOnlyMesh(sparkParticleSystem.emitter);
+
+            skillsData.forEach((skill, index) => {
+                const angle = index * angleStep;
+                const x = radius * Math.cos(angle);
+                const z = radius * Math.sin(angle);
+
+                const pyramid = BABYLON.MeshBuilder.CreateCylinder(skill.skill, { diameterTop: 0, diameterBottom: 2, height: 2, tessellation: 4, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+                pyramid.position = new BABYLON.Vector3(x, 2.5, z);
+                pyramid.rotation.y = -angle; // Rotate the pyramid to face the center
+
+                // Create a glowing wireframe material
+                const wireframeMaterial = new BABYLON.StandardMaterial("wireframeMaterial", scene);
+                wireframeMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0); // Glowing yellow color like lightning
+                wireframeMaterial.wireframe = true;
+
+                // Add intense radiant glow
+                const glowLayer = new BABYLON.GlowLayer("glow", scene);
+                glowLayer.intensity = 1.0; // Increase the intensity for a more radiant glow
+                glowLayer.addIncludedOnlyMesh(pyramid);
+
+                pyramid.material = wireframeMaterial;
+
+                // Create a dynamic texture for the skill label
+                const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", { width: 2048, height: 1024 }, scene); // Increased size for better readability
+                const context = dynamicTexture.getContext();
+                const size = 128; // Increased font size
+                context.font = size + "px Arial";
+                const text = skill.skill;
+                const textWidth = context.measureText(text).width;
+
+                dynamicTexture.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Arial", "white", "transparent", true); // Adjusted position for larger size
+
+                const textPlane = BABYLON.MeshBuilder.CreatePlane(skill.skill + "Text", { width: 16, height: 4 }, scene); // Increased plane size
+                textPlane.position = new BABYLON.Vector3(x, 6, z); // Raised the text up
+                textPlane.rotation.y = -angle; // Rotate the text to face the center
+                textPlane.material = new BABYLON.StandardMaterial("textPlaneMaterial", scene);
+                textPlane.material.diffuseTexture = dynamicTexture;
+                textPlane.material.diffuseTexture.hasAlpha = true;
+
+                // Create a second dynamic texture for the skill label on the back side
+                const dynamicTextureBack = new BABYLON.DynamicTexture("DynamicTextureBack", { width: 2048, height: 1024 }, scene); // Increased size for better readability
+                const contextBack = dynamicTextureBack.getContext();
+                contextBack.font = size + "px Arial";
+                dynamicTextureBack.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Arial", "white", "transparent", true); // Adjusted position for larger size
+
+                const textPlaneBack = BABYLON.MeshBuilder.CreatePlane(skill.skill + "TextBack", { width: 16, height: 4 }, scene); // Increased plane size
+                textPlaneBack.position = new BABYLON.Vector3(x, 6, z); // Raised the text up
+                textPlaneBack.rotation.y = -angle + Math.PI; // Rotate the text to face the center
+                textPlaneBack.material = new BABYLON.StandardMaterial("textPlaneMaterialBack", scene);
+                textPlaneBack.material.diffuseTexture = dynamicTextureBack;
+                textPlaneBack.material.diffuseTexture.hasAlpha = true;
+
+                // Add click event to display skill details
+                pyramid.actionManager = new BABYLON.ActionManager(scene);
+                pyramid.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function () {
+                    displayInfo(skill.skill, skill.fullSkill);
+                }));
+
+                // Add flickering effect to the wireframe using generated noise for color transitions
+                const flickerWireframeMaterial = new BABYLON.StandardMaterial("flickerWireframeMaterial", scene);
+                flickerWireframeMaterial.wireframe = true;
+
+                let flickerCounter = 0;
+                const flickerInterval = 60; // Adjust this value to make the flicker effect slower
+
+                function generateNoiseColor() {
+                    const r = Math.random();
+                    const g = Math.random();
+                    const b = Math.random();
+                    return new BABYLON.Color3(r, g, b);
+                }
+
+                scene.registerBeforeRender(() => {
+                    if (!pyramid.actionManager.hasPointerOverTrigger) {
+                        flickerCounter++;
+                        if (flickerCounter >= flickerInterval) {
+                            flickerWireframeMaterial.emissiveColor = generateNoiseColor();
+                            pyramid.material = flickerWireframeMaterial;
+                            flickerCounter = 0;
+                        }
+                    }
+                });
+            });
+
+            // Rendering loop
+            engine.runRenderLoop(function () {
+                scene.render();
+            });
+
+            // Resize the engine on window resize
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+        }
+
+        // Initialize the 3D scene
+        create3DScene();
+
+        // Initialize the 3D scene
+        create3DScene();
     </script>
 </body>
 </html>
