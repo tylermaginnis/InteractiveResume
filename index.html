@@ -891,295 +891,452 @@
             }
         });
 
-        // Create 3D Scene with Babylon.js
-        // Function to display detailed information
-            // Function to display detailed information
-            function displayInfo(title, description) {
-            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+// Function to display detailed information
+function displayInfo(title, description) {
+    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-            const panel = new BABYLON.GUI.StackPanel();
-            panel.width = "50%";
-            panel.height = "50%";
-            panel.background = "black";
-            panel.color = "white";
-            panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-            panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-            advancedTexture.addControl(panel);
+    const panel = new BABYLON.GUI.StackPanel();
+    panel.width = "50%";
+    panel.height = "50%";
+    panel.background = "black";
+    panel.color = "white";
+    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    advancedTexture.addControl(panel);
 
-            const header = new BABYLON.GUI.TextBlock();
-            header.text = title;
-            header.height = "40px";
-            header.color = "white";
-            header.fontSize = 24;
-            panel.addControl(header);
+    const header = new BABYLON.GUI.TextBlock();
+    header.text = title;
+    header.height = "40px";
+    header.color = "white";
+    header.fontSize = 24;
+    panel.addControl(header);
 
-            const textBlock = new BABYLON.GUI.TextBlock();
-            textBlock.text = description;
-            textBlock.color = "white";
-            textBlock.fontSize = 18;
-            textBlock.textWrapping = true;
-            panel.addControl(textBlock);
+    const textBlock = new BABYLON.GUI.TextBlock();
+    textBlock.text = description;
+    textBlock.color = "white";
+    textBlock.fontSize = 18;
+    textBlock.textWrapping = true;
+    panel.addControl(textBlock);
 
-            const closeButton = new BABYLON.GUI.Button.CreateSimpleButton("closeButton", "Close");
-            closeButton.width = "100px";
-            closeButton.height = "40px";
-            closeButton.color = "white";
-            closeButton.background = "red";
-            closeButton.onPointerUpObservable.add(function() {
-                advancedTexture.dispose();
-            });
-            panel.addControl(closeButton);
+    const closeButton = new BABYLON.GUI.Button.CreateSimpleButton("closeButton", "Close");
+    closeButton.width = "100px";
+    closeButton.height = "40px";
+    closeButton.color = "white";
+    closeButton.background = "red";
+    closeButton.onPointerUpObservable.add(function() {
+        advancedTexture.dispose();
+    });
+    panel.addControl(closeButton);
+}
+
+function createPyramid(scene, position) {
+    const baseSize = 2;
+    const height = 2;
+    const halfBaseSize = baseSize / 2;
+
+    // Create four triangular faces and the base separately
+    const vertices = [
+        // Base vertices
+        new BABYLON.Vector3(-halfBaseSize, 0, -halfBaseSize), // 0: Back-Left
+        new BABYLON.Vector3(halfBaseSize, 0, -halfBaseSize),  // 1: Back-Right
+        new BABYLON.Vector3(halfBaseSize, 0, halfBaseSize),   // 2: Front-Right
+        new BABYLON.Vector3(-halfBaseSize, 0, halfBaseSize),  // 3: Front-Left
+
+        // Apex vertex
+        new BABYLON.Vector3(0, height, 0)                     // 4: Apex
+    ];
+
+    // Create individual face meshes
+    const faces = [];
+    for (let i = 0; i < 4; i++) {
+        const face = new BABYLON.Mesh("face" + i, scene);
+
+        // Vertices for the current face
+        const faceVertices = [
+            vertices[i].x, vertices[i].y, vertices[i].z,
+            vertices[(i + 1) % 4].x, vertices[(i + 1) % 4].y, vertices[(i + 1) % 4].z,
+            vertices[4].x, vertices[4].y, vertices[4].z
+        ];
+
+        // Indices for the triangular face
+        const faceIndices = [0, 1, 2];
+
+        // Normals for the face
+        const faceNormals = [];
+        BABYLON.VertexData.ComputeNormals(faceVertices, faceIndices, faceNormals);
+
+        // Create vertex data for the face
+        const vertexData = new BABYLON.VertexData();
+        vertexData.positions = faceVertices;
+        vertexData.indices = faceIndices;
+        vertexData.normals = faceNormals;
+
+        // Apply vertex data to the face mesh
+        vertexData.applyToMesh(face);
+
+        // Initialize rotationQuaternion to avoid errors
+        face.rotationQuaternion = new BABYLON.Quaternion(); // Ensure this is set
+
+        // Set the face to wireframe mode
+        face.material = new BABYLON.StandardMaterial("material", scene);
+        face.material.wireframe = true;
+
+        // Position the face at the desired location
+        face.position = position;
+
+        faces.push(face);
+    }
+
+    // Optionally create the base mesh separately if needed
+    const base = BABYLON.MeshBuilder.CreateGround("base", { width: baseSize, height: baseSize, subdivisions: 1 }, scene);
+    base.position = new BABYLON.Vector3(position.x, position.y, position.z);
+    base.material = new BABYLON.StandardMaterial("material", scene);
+    base.material.wireframe = true;
+    faces.push(base);
+
+    // Return the array of faces and vertices
+    return { faces, vertices };
+}
+
+function unfoldPyramid(faces, vertices, height) {
+    // Define an easing function for smoother animation
+    const easingFunction = new BABYLON.SineEase();
+    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+
+    faces.forEach((face, index) => {
+        // Ensure rotationQuaternion is initialized
+        if (!face.rotationQuaternion) {
+            face.rotationQuaternion = new BABYLON.Quaternion(); // Initialize if null
         }
 
-        // Create 3D Scene with Babylon.js
-        function create3DScene() {
-            const canvas = document.getElementById('babylon-container'); // Get the canvas element
-            const engine = new BABYLON.Engine(canvas, true); // Create the engine
-            const scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color3(0, 0, 0); // Set the background color to black
+        // Calculate the rotation axis based on the base edge of the face
+        const edgeStart = vertices[index];
+        const edgeEnd = vertices[(index + 1) % 4];
+        
+        // Create a vector along the base edge to use as the rotation axis
+        const rotationAxis = edgeEnd.subtract(edgeStart).normalize();
 
-            // Create a camera
-            const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 60, new BABYLON.Vector3(0, 0, 0), scene);
-            camera.setPosition(new BABYLON.Vector3(0, 25, 0)); // Set the camera position to a higher point for a more zoomed-out view
-            camera.alpha = -Math.PI / 6; // Set the camera angle
-            camera.beta = Math.PI / 3.5; // Set the camera elevation angle
-            camera.attachControl(canvas, true);
+        // Determine if the face is currently unfolded
+        const isUnfolded = face.rotationQuaternion.equals(BABYLON.Quaternion.Identity());
 
-            // Create a light
-            const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+        // Create a new animation for the rotation
+        const rotationAnimation = new BABYLON.Animation(
+            `rotationAnimation${index}`,
+            "rotationQuaternion",
+            60, // Increase the duration for a more dramatic effect
+            BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
 
+        // Key frames for rotation (unfolding/folding effect)
+        const rotationKeys = [];
+        rotationKeys.push({ frame: 0, value: face.rotationQuaternion.clone() }); // Use clone to avoid mutation
+        const targetQuaternion = isUnfolded
+            ? BABYLON.Quaternion.RotationAxis(rotationAxis, Math.PI)
+            : BABYLON.Quaternion.Identity();
+        rotationKeys.push({ frame: 60, value: targetQuaternion });
+        rotationAnimation.setKeys(rotationKeys);
+        rotationAnimation.setEasingFunction(easingFunction);
 
-            // Create skill pyramids
-            const radius = 10; // Radius of the circle
-            const angleStep = (2 * Math.PI) / skillsData.length; // Angle between each skill
-            // Add entropic background particle effect to the wireframe
-            const sparkParticleSystem = new BABYLON.ParticleSystem("sparks", 500, scene); // Reduced particle count
-            sparkParticleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
-            sparkParticleSystem.emitter = new BABYLON.Vector3(0, 0, 0); // the mesh to emit from
-            sparkParticleSystem.minEmitBox = new BABYLON.Vector3(-radius, 0, -radius); // Starting all from
-            sparkParticleSystem.maxEmitBox = new BABYLON.Vector3(radius, 0.1, radius); // To...
+        // Apply animation to the face
+        face.animations.push(rotationAnimation);
 
-            sparkParticleSystem.color1 = new BABYLON.Color4(1, 0.5, 0.5, 0.1); // Softer color
-            sparkParticleSystem.color2 = new BABYLON.Color4(0.5, 0.5, 1, 0.1); // Softer color
-            sparkParticleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+        // Create a new animation for the position
+        const positionAnimation = new BABYLON.Animation(
+            `positionAnimation${index}`,
+            "position",
+            60, // Increase the duration for a more dramatic effect
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
 
-            sparkParticleSystem.minSize = 0.1; // Increased size
-            sparkParticleSystem.maxSize = 0.2; // Increased size
+        // Calculate new position after unfolding/folding
+        const unfoldedPosition = isUnfolded
+            ? face.position.add(rotationAxis.scale(height * 2)) // Move further out for a more dramatic effect
+            : face.position.subtract(rotationAxis.scale(height * 2));
 
-            sparkParticleSystem.minLifeTime = 0.3;
-            sparkParticleSystem.maxLifeTime = 2.5;
+        // Key frames for position (moving the face outward/inward)
+        const positionKeys = [];
+        positionKeys.push({ frame: 0, value: face.position.clone() }); // Use clone to avoid mutation
+        positionKeys.push({ frame: 60, value: unfoldedPosition }); // Move outward/inward
+        positionAnimation.setKeys(positionKeys);
+        positionAnimation.setEasingFunction(easingFunction);
 
-            sparkParticleSystem.emitRate = 500; // Reduced emit rate
+        // Apply animation to the face
+        face.animations.push(positionAnimation);
 
-            sparkParticleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+        // Create a new animation for scaling
+        const scaleAnimation = new BABYLON.Animation(
+            `scaleAnimation${index}`,
+            "scaling",
+            60, // Increase the duration for a more dramatic effect
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
 
-            sparkParticleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+        // Key frames for scaling (unfolding/folding effect)
+        const scaleKeys = [];
+        scaleKeys.push({ frame: 0, value: face.scaling.clone() }); // Use clone to avoid mutation
+        const targetScale = isUnfolded
+            ? new BABYLON.Vector3(1.5, 1.5, 1.5) // Scale up for a more dramatic effect
+            : new BABYLON.Vector3(1, 1, 1); // Restore original scale
+        scaleKeys.push({ frame: 60, value: targetScale });
+        scaleAnimation.setKeys(scaleKeys);
+        scaleAnimation.setEasingFunction(easingFunction);
 
-            sparkParticleSystem.direction1 = new BABYLON.Vector3(-1, -1, -1); // More random directions
-            sparkParticleSystem.direction2 = new BABYLON.Vector3(1, 1, 1); // More random directions
+        // Apply animation to the face
+        face.animations.push(scaleAnimation);
 
-            sparkParticleSystem.minAngularSpeed = 0;
-            sparkParticleSystem.maxAngularSpeed = Math.PI * 2;
+        // Start the animations
+        face.getScene().beginAnimation(face, 0, 60, false);
+    });
+}
 
-            sparkParticleSystem.minEmitPower = 0.5;
-            sparkParticleSystem.maxEmitPower = 2.0;
-            sparkParticleSystem.updateSpeed = 0.005;
+function create3DScene() {
+    const canvas = document.getElementById('babylon-container'); // Get the canvas element
+    const engine = new BABYLON.Engine(canvas, true); // Create the engine
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color3(0, 0, 0); // Set the background color to black
 
-            sparkParticleSystem.start();
-            // Add intense radiant glow to the particles
-            const glowLayer = new BABYLON.GlowLayer("glow", scene);
-            glowLayer.intensity = 2.0; // Further increase the intensity for a more radiant glow
-            glowLayer.addIncludedOnlyMesh(sparkParticleSystem.emitter);
+    // Create a camera
+    const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 60, new BABYLON.Vector3(0, 0, 0), scene);
+    camera.setPosition(new BABYLON.Vector3(0, 25, 0)); // Set the camera position to a higher point for a more zoomed-out view
+    camera.alpha = -Math.PI / 6; // Set the camera angle
+    camera.beta = Math.PI / 3.5; // Set the camera elevation angle
+    camera.attachControl(canvas, true);
 
-            skillsData.forEach((skill, index) => {
-                const angle = index * angleStep;
-                const x = radius * Math.cos(angle);
-                const z = radius * Math.sin(angle);
+    // Create a light
+    const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
 
-                const pyramid = BABYLON.MeshBuilder.CreateCylinder(skill.skill, { diameterTop: 0, diameterBottom: 2, height: 2, tessellation: 4, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
-                pyramid.position = new BABYLON.Vector3(x, 2.5, z);
-                pyramid.rotation.y = -angle; // Rotate the pyramid to face the center
+    // Create skill pyramids
+    const radius = 10; // Radius of the circle
+    const angleStep = (2 * Math.PI) / skillsData.length; // Angle between each skill
 
-                // Create a glowing wireframe material
-                const wireframeMaterial = new BABYLON.StandardMaterial("wireframeMaterial", scene);
-                wireframeMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0); // Glowing yellow color like lightning
-                wireframeMaterial.wireframe = true;
+    // Add entropic background particle effect to the wireframe
+    const sparkParticleSystem = new BABYLON.ParticleSystem("sparks", 500, scene); // Reduced particle count
+    sparkParticleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+    sparkParticleSystem.emitter = new BABYLON.Vector3(0, 0, 0); // the mesh to emit from
+    sparkParticleSystem.minEmitBox = new BABYLON.Vector3(-radius, 0, -radius); // Starting all from
+    sparkParticleSystem.maxEmitBox = new BABYLON.Vector3(radius, 0.1, radius); // To...
 
-                // Add intense radiant glow
-                const glowLayer2 = new BABYLON.GlowLayer("glow", scene);
-                glowLayer2.intensity = 1.0; // Increase the intensity for a more radiant glow
-                glowLayer2.addIncludedOnlyMesh(pyramid);
+    sparkParticleSystem.color1 = new BABYLON.Color4(1, 0.5, 0.5, 0.1); // Softer color
+    sparkParticleSystem.color2 = new BABYLON.Color4(0.5, 0.5, 1, 0.1); // Softer color
+    sparkParticleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
 
-                pyramid.material = wireframeMaterial;
+    sparkParticleSystem.minSize = 0.1; // Increased size
+    sparkParticleSystem.maxSize = 0.2; // Increased size
 
-                                // Create a dynamic texture for the skill label
-                                const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", { width: 2048, height: 1024 }, scene);
-                const context = dynamicTexture.getContext();
-                const size = 128;
-                context.font = size + "px Neon";
-                const text = skill.skill;
-                const textWidth = context.measureText(text).width;
+    sparkParticleSystem.minLifeTime = 0.3;
+    sparkParticleSystem.maxLifeTime = 2.5;
 
-                dynamicTexture.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
+    sparkParticleSystem.emitRate = 500; // Reduced emit rate
 
-                const textPlane = BABYLON.MeshBuilder.CreatePlane(skill.skill + "Text", { width: 16, height: 4 }, scene);
-                textPlane.position = new BABYLON.Vector3(x, 6, z);
-                textPlane.rotation.y = -angle;
-                textPlane.material = new BABYLON.StandardMaterial("textPlaneMaterial", scene);
-                textPlane.material.diffuseTexture = dynamicTexture;
-                textPlane.material.diffuseTexture.hasAlpha = true;
-                textPlane.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+    sparkParticleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
 
-                // Add glow effect
-                const glowLayer3 = new BABYLON.GlowLayer("glow", scene);
-                glowLayer3.intensity = 1.0;
-                glowLayer3.addIncludedOnlyMesh(textPlane);
+    sparkParticleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
 
-                // Create a second dynamic texture for the skill label on the back side
-                const dynamicTextureBack = new BABYLON.DynamicTexture("DynamicTextureBack", { width: 2048, height: 1024 }, scene);
-                const contextBack = dynamicTextureBack.getContext();
-                contextBack.font = size + "px Neon";
-                dynamicTextureBack.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
+    sparkParticleSystem.direction1 = new BABYLON.Vector3(-1, -1, -1); // More random directions
+    sparkParticleSystem.direction2 = new BABYLON.Vector3(1, 1, 1); // More random directions
 
-                const textPlaneBack = BABYLON.MeshBuilder.CreatePlane(skill.skill + "TextBack", { width: 16, height: 4 }, scene);
-                textPlaneBack.position = new BABYLON.Vector3(x, 6, z);
-                textPlaneBack.rotation.y = -angle + Math.PI;
-                textPlaneBack.material = new BABYLON.StandardMaterial("textPlaneMaterialBack", scene);
-                textPlaneBack.material.diffuseTexture = dynamicTextureBack;
-                textPlaneBack.material.diffuseTexture.hasAlpha = true;
-                textPlaneBack.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+    sparkParticleSystem.minAngularSpeed = 0;
+    sparkParticleSystem.maxAngularSpeed = Math.PI * 2;
 
-                // Add glow effect to the back side
-                glowLayer.addIncludedOnlyMesh(textPlaneBack);
-                // Add particle effect as a circle underneath the pyramid
-                const particleSystem = new BABYLON.ParticleSystem("particles", 4000, scene);
-                particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
-                particleSystem.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
-                particleSystem.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
-                particleSystem.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
-                particleSystem.color1 = new BABYLON.Color4(0, 1, 1, 1);
-                particleSystem.color2 = new BABYLON.Color4(0, 0.5, 1, 1);
-                particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
-                particleSystem.minSize = 0.05; // Smaller particle sizes
-                particleSystem.maxSize = 0.1; // Smaller particle sizes
-                particleSystem.minLifeTime = 0.3;
-                particleSystem.maxLifeTime = 1.5;
-                particleSystem.emitRate = 1000;
-                particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-                particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
-                particleSystem.direction1 = new BABYLON.Vector3(0, 1, 0); // Emit particles upwards
-                particleSystem.direction2 = new BABYLON.Vector3(0, 1, 0);
-                particleSystem.minAngularSpeed = 0;
-                particleSystem.maxAngularSpeed = Math.PI;
-                particleSystem.minEmitPower = 0.5;
-                particleSystem.maxEmitPower = 1.5;
-                particleSystem.updateSpeed = 0.005;
+    sparkParticleSystem.minEmitPower = 0.5;
+    sparkParticleSystem.maxEmitPower = 2.0;
+    sparkParticleSystem.updateSpeed = 0.005;
 
-                // Align the particle system with the text in perspective
-                particleSystem.startDirectionFunction = function(worldMatrix, directionToUpdate) {
-                    BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
-                };
+    sparkParticleSystem.start();
 
-                particleSystem.startPositionFunction = function(worldMatrix, positionToUpdate) {
-                    const angle = Math.random() * 2 * Math.PI;
-                    const radius = 2; // Radius of the circle
-                    const randX = radius * Math.cos(angle);
-                    const randY = -3;
-                    const randZ = radius * Math.sin(angle);
-                    BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
-                };
+    // Add intense radiant glow to the particles
+    const glowLayer = new BABYLON.GlowLayer("glow", scene);
+    glowLayer.intensity = 2.0; // Further increase the intensity for a more radiant glow
+    glowLayer.addIncludedOnlyMesh(sparkParticleSystem.emitter);
 
-                particleSystem.start();
+    skillsData.forEach((skill, index) => {
+        const angle = index * angleStep;
+        const x = radius * Math.cos(angle);
+        const z = radius * Math.sin(angle);
 
-                // Add a second particle system for more dynamic effects
-                const particleSystem2 = new BABYLON.ParticleSystem("particles2", 4000, scene);
-                particleSystem2.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
-                particleSystem2.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
-                particleSystem2.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
-                particleSystem2.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
-                particleSystem2.color1 = new BABYLON.Color4(1, 0, 0, 1);
-                particleSystem2.color2 = new BABYLON.Color4(1, 0.5, 0, 1);
-                particleSystem2.colorDead = new BABYLON.Color4(0.2, 0, 0, 0.0);
-                particleSystem2.minSize = 0.05; // Smaller particle sizes
-                particleSystem2.maxSize = 0.1; // Smaller particle sizes
-                particleSystem2.minLifeTime = 0.3;
-                particleSystem2.maxLifeTime = 1.5;
-                particleSystem2.emitRate = 1000;
-                particleSystem2.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-                particleSystem2.gravity = new BABYLON.Vector3(0, 9.81, 0);
-                particleSystem2.direction1 = new BABYLON.Vector3(0, -1, 0); // Emit particles upwards
-                particleSystem2.direction2 = new BABYLON.Vector3(0, -1, 0);
-                particleSystem2.minAngularSpeed = 0;
-                particleSystem2.maxAngularSpeed = Math.PI;
-                particleSystem2.minEmitPower = 0.5;
-                particleSystem2.maxEmitPower = 1.5;
-                particleSystem2.updateSpeed = 0.005;
+        const { faces: pyramid, vertices } = createPyramid(scene, new BABYLON.Vector3(x, 2.5, z));
 
-                // Align the second particle system with the text in perspective
-                particleSystem2.startDirectionFunction = function(worldMatrix, directionToUpdate) {
-                    BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
-                };
+        // Create a glowing wireframe material
+        const wireframeMaterial = new BABYLON.StandardMaterial("wireframeMaterial", scene);
+        wireframeMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0); // Glowing yellow color like lightning
+        wireframeMaterial.wireframe = true;
+        pyramid.material = wireframeMaterial;
 
-                particleSystem2.startPositionFunction = function(worldMatrix, positionToUpdate) {
-                    const angle = Math.random() * 2 * Math.PI;
-                    const radius = 2; // Radius of the circle
-                    const randX = radius * Math.cos(angle);
-                    const randY = -3;
-                    const randZ = radius * Math.sin(angle);
-                    BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
-                };
+        // Add intense radiant glow
+        const glowLayer2 = new BABYLON.GlowLayer("glow", scene);
+        glowLayer2.intensity = 1.0; // Increase the intensity for a more radiant glow
+        glowLayer2.addIncludedOnlyMesh(pyramid);
 
-                particleSystem2.start();
+        // Create a dynamic texture for the skill label
+        const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", { width: 2048, height: 1024 }, scene);
+        const context = dynamicTexture.getContext();
+        const size = 128;
+        context.font = size + "px Neon";
+        const text = skill.skill;
+        const textWidth = context.measureText(text).width;
 
+        dynamicTexture.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
 
-                // Add click event to display skill details
-                pyramid.actionManager = new BABYLON.ActionManager(scene);
-                pyramid.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function () {
-                    displayInfo(skill.skill, skill.fullSkill);
-                }));
+        const textPlane = BABYLON.MeshBuilder.CreatePlane(skill.skill + "Text", { width: 16, height: 4 }, scene);
+        textPlane.position = new BABYLON.Vector3(x, 6, z);
+        textPlane.rotation.y = -angle;
+        textPlane.material = new BABYLON.StandardMaterial("textPlaneMaterial", scene);
+        textPlane.material.diffuseTexture = dynamicTexture;
+        textPlane.material.diffuseTexture.hasAlpha = true;
+        textPlane.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
 
-                // Add flickering effect to the wireframe using generated noise for color transitions
-                const flickerWireframeMaterial = new BABYLON.StandardMaterial("flickerWireframeMaterial", scene);
-                flickerWireframeMaterial.wireframe = true;
+        // Add glow effect
+        const glowLayer3 = new BABYLON.GlowLayer("glow", scene);
+        glowLayer3.intensity = 1.0;
+        glowLayer3.addIncludedOnlyMesh(textPlane);
 
-                let flickerCounter = 0;
-                const flickerInterval = 60; // Adjust this value to make the flicker effect slower
+        // Create a second dynamic texture for the skill label on the back side
+        const dynamicTextureBack = new BABYLON.DynamicTexture("DynamicTextureBack", { width: 2048, height: 1024 }, scene);
+        const contextBack = dynamicTextureBack.getContext();
+        contextBack.font = size + "px Neon";
+        dynamicTextureBack.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
 
-                function generateNoiseColor() {
-                    const r = Math.random();
-                    const g = Math.random();
-                    const b = Math.random();
-                    return new BABYLON.Color3(r, g, b);
-                }
+        const textPlaneBack = BABYLON.MeshBuilder.CreatePlane(skill.skill + "TextBack", { width: 16, height: 4 }, scene);
+        textPlaneBack.position = new BABYLON.Vector3(x, 6, z);
+        textPlaneBack.rotation.y = -angle + Math.PI;
+        textPlaneBack.material = new BABYLON.StandardMaterial("textPlaneMaterialBack", scene);
+        textPlaneBack.material.diffuseTexture = dynamicTextureBack;
+        textPlaneBack.material.diffuseTexture.hasAlpha = true;
+        textPlaneBack.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
 
-                scene.registerBeforeRender(() => {
-                    if (!pyramid.actionManager.hasPointerOverTrigger) {
-                        flickerCounter++;
-                        if (flickerCounter >= flickerInterval) {
-                            flickerWireframeMaterial.emissiveColor = generateNoiseColor();
-                            pyramid.material = flickerWireframeMaterial;
-                            flickerCounter = 0;
-                        }
-                    }
-                });
-            });
+        // Add glow effect to the back side
+        glowLayer.addIncludedOnlyMesh(textPlaneBack);
 
-            // Rendering loop
-            engine.runRenderLoop(function () {
-                scene.render();
-            });
+        // Add particle effect as a circle underneath the pyramid
+        const particleSystem = new BABYLON.ParticleSystem("particles", 4000, scene);
+        particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+        particleSystem.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
+        particleSystem.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
+        particleSystem.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+        particleSystem.color1 = new BABYLON.Color4(0, 1, 1, 1);
+        particleSystem.color2 = new BABYLON.Color4(0, 0.5, 1, 1);
+        particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+        particleSystem.minSize = 0.05; // Smaller particle sizes
+        particleSystem.maxSize = 0.1; // Smaller particle sizes
+        particleSystem.minLifeTime = 0.3;
+        particleSystem.maxLifeTime = 1.5;
+        particleSystem.emitRate = 1000;
+        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+        particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+        particleSystem.direction1 = new BABYLON.Vector3(0, 1, 0); // Emit particles upwards
+        particleSystem.direction2 = new BABYLON.Vector3(0, 1, 0);
+        particleSystem.minAngularSpeed = 0;
+        particleSystem.maxAngularSpeed = Math.PI;
+        particleSystem.minEmitPower = 0.5;
+        particleSystem.maxEmitPower = 1.5;
+        particleSystem.updateSpeed = 0.005;
 
-            // Resize the engine on window resize
-            window.addEventListener("resize", function () {
-                engine.resize();
-            });
+        // Align the particle system with the text in perspective
+        particleSystem.startDirectionFunction = function(worldMatrix, directionToUpdate) {
+            BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
+        };
+
+        particleSystem.startPositionFunction = function(worldMatrix, positionToUpdate) {
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = 2; // Radius of the circle
+            const randX = radius * Math.cos(angle);
+            const randY = -3;
+            const randZ = radius * Math.sin(angle);
+            BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
+        };
+
+        particleSystem.start();
+
+        // Add a second particle system for more dynamic effects
+        const particleSystem2 = new BABYLON.ParticleSystem("particles2", 4000, scene);
+        particleSystem2.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+        particleSystem2.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
+        particleSystem2.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
+        particleSystem2.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+        particleSystem2.color1 = new BABYLON.Color4(1, 0, 0, 1);
+        particleSystem2.color2 = new BABYLON.Color4(1, 0.5, 0, 1);
+        particleSystem2.colorDead = new BABYLON.Color4(0.2, 0, 0, 0.0);
+        particleSystem2.minSize = 0.05; // Smaller particle sizes
+        particleSystem2.maxSize = 0.1; // Smaller particle sizes
+        particleSystem2.minLifeTime = 0.3;
+        particleSystem2.maxLifeTime = 1.5;
+        particleSystem2.emitRate = 1000;
+        particleSystem2.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+        particleSystem2.gravity = new BABYLON.Vector3(0, 9.81, 0);
+        particleSystem2.direction1 = new BABYLON.Vector3(0, -1, 0); // Emit particles upwards
+        particleSystem2.direction2 = new BABYLON.Vector3(0, -1, 0);
+        particleSystem2.minAngularSpeed = 0;
+        particleSystem2.maxAngularSpeed = Math.PI;
+        particleSystem2.minEmitPower = 0.5;
+        particleSystem2.maxEmitPower = 1.5;
+        particleSystem2.updateSpeed = 0.005;
+
+        // Align the second particle system with the text in perspective
+        particleSystem2.startDirectionFunction = function(worldMatrix, directionToUpdate) {
+            BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
+        };
+
+        particleSystem2.startPositionFunction = function(worldMatrix, positionToUpdate) {
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = 2; // Radius of the circle
+            const randX = radius * Math.cos(angle);
+            const randY = -3;
+            const randZ = radius * Math.sin(angle);
+            BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
+        };
+
+        particleSystem2.start();
+
+        // Add click event to display skill details and unfold the pyramid
+        pyramid.forEach(face => {
+            face.actionManager = new BABYLON.ActionManager(scene);
+            face.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function () {
+                unfoldPyramid(pyramid, vertices, 2); // Pass the vertices array and height here
+            }));
+        });
+
+        // Add flickering effect to the wireframe using generated noise for color transitions
+        const flickerWireframeMaterial = new BABYLON.StandardMaterial("flickerWireframeMaterial", scene);
+        flickerWireframeMaterial.wireframe = true;
+
+        let flickerCounter = 0;
+        const flickerInterval = 60; // Adjust this value to make the flicker effect slower
+
+        function generateNoiseColor() {
+            const r = Math.random();
+            const g = Math.random();
+            const b = Math.random();
+            return new BABYLON.Color3(r, g, b);
         }
 
-        // Initialize the 3D scene
-        create3DScene();
+        scene.registerBeforeRender(() => {
+            flickerCounter++;
+            if (flickerCounter >= flickerInterval) {
+                flickerWireframeMaterial.emissiveColor = generateNoiseColor();
+                pyramid.forEach(face => face.material = flickerWireframeMaterial);
+                flickerCounter = 0;
+            }
+        });
+    });
 
-        // Initialize the 3D scene
-        create3DScene();
+    // Rendering loop
+    engine.runRenderLoop(function () {
+        scene.render();
+    });
+
+    // Resize the engine on window resize
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+}
+
+// Initialize the 3D scene
+create3DScene();
+
+
     </script>
 </body>
 </html>
