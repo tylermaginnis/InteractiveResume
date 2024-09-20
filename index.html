@@ -997,22 +997,22 @@ function createPyramid(scene, position) {
     // Return the array of faces and vertices
     return { faces, vertices };
 }
-
-    // Function to create a transparent ball of light with rays
+    // Function to create a cyberpunk, glowing ball of light with intense neon rays
+    // Function to create a cyberpunk, glowing ball of light with intense neon rays
     function createLightBall(scene, position) {
-        const lightBall = BABYLON.MeshBuilder.CreateSphere("lightBall", { diameter: 1 }, scene);
+        const lightBall = BABYLON.MeshBuilder.CreateSphere("lightBall", { diameter: 1 }, scene); // Smaller ball
         lightBall.position = position;
         lightBall.material = new BABYLON.StandardMaterial("lightBallMaterial", scene);
-        lightBall.material.emissiveColor = new BABYLON.Color3(1, 1, 0); // Glowing yellow color
-        lightBall.material.alpha = 0.5; // Make the ball semi-transparent
+        lightBall.material.emissiveColor = new BABYLON.Color3(0, 1, 1); // Neon cyan color
+        lightBall.material.alpha = 0.9; // Make the ball more opaque
 
-        // Create a light source inside the ball
+        // Create a powerful light source inside the ball
         const pointLight = new BABYLON.PointLight("pointLight", position, scene);
-        pointLight.diffuse = new BABYLON.Color3(1, 1, 0);
-        pointLight.specular = new BABYLON.Color3(1, 1, 0);
-        pointLight.intensity = 2;
+        pointLight.diffuse = new BABYLON.Color3(0, 1, 1); // Neon cyan color
+        pointLight.specular = new BABYLON.Color3(0, 1, 1); // Neon cyan color
+        pointLight.intensity = 1.5; // Adjust the intensity to be less intense
 
-        // Create volumetric light scattering post-process for rays
+        // Create volumetric light scattering post-process for dramatic neon rays
         const volumetricLightScattering = new BABYLON.VolumetricLightScatteringPostProcess(
             "vls",
             1.0,
@@ -1024,43 +1024,105 @@ function createPyramid(scene, position) {
             false
         );
 
-        volumetricLightScattering.exposure = 0.8;
+        volumetricLightScattering.exposure = 1.5; // Adjust exposure
         volumetricLightScattering.decay = 0.9;
-        volumetricLightScattering.weight = 1.0;
-        volumetricLightScattering.density = 1.0;
+        volumetricLightScattering.weight = 0.8; // Increase weight
+        volumetricLightScattering.density = 1.5; // Increase density
 
-        return { lightBall, volumetricLightScattering };
+        // Add a flickering effect to the light ball
+        scene.registerBeforeRender(() => {
+            const flickerIntensity = 1.5 + Math.sin(scene.getEngine().getDeltaTime() * 0.005) * 0.5;
+            pointLight.intensity = flickerIntensity;
+        });
+
+        // Add particle effects around the light ball
+        const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+        particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+        particleSystem.emitter = lightBall; // Emit from the light ball
+        particleSystem.minEmitBox = new BABYLON.Vector3(-0.5, -0.5, -0.5); // Emit from within the light ball
+        particleSystem.maxEmitBox = new BABYLON.Vector3(0.5, 0.5, 0.5);
+
+        particleSystem.color1 = new BABYLON.Color4(1, 0, 1, 1); // Neon magenta
+        particleSystem.color2 = new BABYLON.Color4(0, 1, 1, 1); // Neon cyan
+        particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+
+        particleSystem.minSize = 0.1;
+        particleSystem.maxSize = 0.3;
+
+        particleSystem.minLifeTime = 0.3;
+        particleSystem.maxLifeTime = 1.5;
+
+        particleSystem.emitRate = 1000;
+
+        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+
+        particleSystem.gravity = new BABYLON.Vector3(0, 0, 0);
+
+        particleSystem.direction1 = new BABYLON.Vector3(-1, -1, -1);
+        particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+
+        particleSystem.minAngularSpeed = 0;
+        particleSystem.maxAngularSpeed = Math.PI;
+
+        particleSystem.minEmitPower = 0.5;
+        particleSystem.maxEmitPower = 1.5;
+        particleSystem.updateSpeed = 0.005;
+
+        particleSystem.start();
+
+        // Add sound effect
+        const sound = new BABYLON.Sound("lightBallSound", "sounds/light_ball.mp3", scene, null, {
+            loop: false,
+            autoplay: true,
+            spatialSound: true,
+            maxDistance: 50,
+            refDistance: 1,
+            rolloffFactor: 1,
+            distanceModel: "linear"
+        });
+        sound.attachToMesh(lightBall);
+
+        // Add animation to make the light ball pulse
+        const pulseAnimation = new BABYLON.Animation(
+            "pulseAnimation",
+            "scaling",
+            60,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const pulseKeys = [];
+        pulseKeys.push({ frame: 0, value: new BABYLON.Vector3(1, 1, 1) });
+        pulseKeys.push({ frame: 30, value: new BABYLON.Vector3(1.1, 1.1, 1.1) }); // Gentle pulse
+        pulseKeys.push({ frame: 60, value: new BABYLON.Vector3(1, 1, 1) });
+
+        pulseAnimation.setKeys(pulseKeys);
+        lightBall.animations.push(pulseAnimation);
+        scene.beginAnimation(lightBall, 0, 60, true);
+
+        // Add color animation to create a technicolor effect
+        const colorAnimation = new BABYLON.Animation(
+            "colorAnimation",
+            "material.emissiveColor",
+            60,
+            BABYLON.Animation.ANIMATIONTYPE_COLOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+
+        const colorKeys = [];
+        colorKeys.push({ frame: 0, value: new BABYLON.Color3(1, 0, 1) }); // Neon magenta
+        colorKeys.push({ frame: 20, value: new BABYLON.Color3(0, 1, 1) }); // Neon cyan
+        colorKeys.push({ frame: 40, value: new BABYLON.Color3(1, 1, 0) }); // Neon yellow
+        colorKeys.push({ frame: 60, value: new BABYLON.Color3(1, 0, 1) }); // Back to neon magenta
+
+        colorAnimation.setKeys(colorKeys);
+        lightBall.animations.push(colorAnimation);
+        scene.beginAnimation(lightBall, 0, 60, true);
+
+        return { lightBall, volumetricLightScattering, particleSystem, sound };
     }
 
-    // Function to animate the volumetric light scattering properties
-    function animateVolumetricLightScattering(vls, duration) {
-        const keys = [
-            { frame: 0, value: { exposure: 1.0, decay: 0.9, weight: 1.0, density: 1.0 } },
-            { frame: duration, value: { exposure: 0.3, decay: 0.96815, weight: 0.58767, density: 0.926 } }
-        ];
 
-        const animateProperty = (property) => {
-            const animation = new BABYLON.Animation(
-                `vls_${property}`,
-                property,
-                60,
-                BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            );
-
-            const propertyKeys = keys.map(key => ({ frame: key.frame, value: key.value[property] }));
-            animation.setKeys(propertyKeys);
-
-            vls.animations.push(animation);
-        };
-
-        animateProperty("exposure");
-        animateProperty("decay");
-        animateProperty("weight");
-        animateProperty("density");
-
-        vls.getScene().beginAnimation(vls, 0, duration, false);
-    }
 
     // Function to unfold/fold the pyramid and create/remove a light ball
     function unfoldPyramid(faces, vertices, height) {
@@ -1169,14 +1231,28 @@ function createPyramid(scene, position) {
 
             const lightBallKeys = [];
             lightBallKeys.push({ frame: 0, value: lightBall.position.clone() });
-            lightBallKeys.push({ frame: 60, value: lightBall.position.add(new BABYLON.Vector3(0, height * 2, 0)) });
+            lightBallKeys.push({ frame: 60, value: lightBall.position.add(new BABYLON.Vector3(0, height * 3.0, 0)) });
             lightBallAnimation.setKeys(lightBallKeys);
 
             lightBall.animations.push(lightBallAnimation);
             lightBall.getScene().beginAnimation(lightBall, 0, 60, false);
 
-            // Animate the volumetric light scattering properties
-            animateVolumetricLightScattering(volumetricLightScattering, 60);
+            // Animate the light ball opacity
+            const lightBallOpacityAnimation = new BABYLON.Animation(
+                "lightBallOpacityAnimation",
+                "material.alpha",
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            const lightBallOpacityKeys = [];
+            lightBallOpacityKeys.push({ frame: 0, value: 0 });
+            lightBallOpacityKeys.push({ frame: 60, value: 1 });
+            lightBallOpacityAnimation.setKeys(lightBallOpacityKeys);
+
+            lightBall.animations.push(lightBallOpacityAnimation);
+            lightBall.getScene().beginAnimation(lightBall, 0, 60, false);
 
             // Store the light ball and volumetric light scattering for later removal
             faces[0].lightBall = lightBall;
@@ -1184,7 +1260,6 @@ function createPyramid(scene, position) {
         } else {
             // Animate the light ball back into the pyramid and then dispose of it
             const lightBall = faces[0].lightBall;
-            const volumetricLightScattering = faces[0].volumetricLightScattering;
 
             const lightBallReturnAnimation = new BABYLON.Animation(
                 "lightBallReturnAnimation",
@@ -1196,13 +1271,29 @@ function createPyramid(scene, position) {
 
             const lightBallReturnKeys = [];
             lightBallReturnKeys.push({ frame: 0, value: lightBall.position.clone() });
-            lightBallReturnKeys.push({ frame: 60, value: faces[0].position.clone() });
+            lightBallReturnKeys.push({ frame: 60, value: lightBall.position.subtract(new BABYLON.Vector3(0, height * 3.0, 0)) });
             lightBallReturnAnimation.setKeys(lightBallReturnKeys);
 
             lightBall.animations.push(lightBallReturnAnimation);
+
+            // Animate the light ball opacity
+            const lightBallOpacityReturnAnimation = new BABYLON.Animation(
+                "lightBallOpacityReturnAnimation",
+                "material.alpha",
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            const lightBallOpacityReturnKeys = [];
+            lightBallOpacityReturnKeys.push({ frame: 0, value: 1 });
+            lightBallOpacityReturnKeys.push({ frame: 60, value: 0 });
+            lightBallOpacityReturnAnimation.setKeys(lightBallOpacityReturnKeys);
+
+            lightBall.animations.push(lightBallOpacityReturnAnimation);
+
             lightBall.getScene().beginAnimation(lightBall, 0, 60, false, 1, () => {
                 lightBall.dispose();
-                volumetricLightScattering.dispose();
             });
         }
     }
