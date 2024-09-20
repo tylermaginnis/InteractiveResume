@@ -998,99 +998,214 @@ function createPyramid(scene, position) {
     return { faces, vertices };
 }
 
-function unfoldPyramid(faces, vertices, height) {
-    // Define an easing function for smoother animation
-    const easingFunction = new BABYLON.SineEase();
-    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+    // Function to create a transparent ball of light with rays
+    function createLightBall(scene, position) {
+        const lightBall = BABYLON.MeshBuilder.CreateSphere("lightBall", { diameter: 1 }, scene);
+        lightBall.position = position;
+        lightBall.material = new BABYLON.StandardMaterial("lightBallMaterial", scene);
+        lightBall.material.emissiveColor = new BABYLON.Color3(1, 1, 0); // Glowing yellow color
+        lightBall.material.alpha = 0.5; // Make the ball semi-transparent
 
-    faces.forEach((face, index) => {
-        // Ensure rotationQuaternion is initialized
-        if (!face.rotationQuaternion) {
-            face.rotationQuaternion = new BABYLON.Quaternion(); // Initialize if null
+        // Create a light source inside the ball
+        const pointLight = new BABYLON.PointLight("pointLight", position, scene);
+        pointLight.diffuse = new BABYLON.Color3(1, 1, 0);
+        pointLight.specular = new BABYLON.Color3(1, 1, 0);
+        pointLight.intensity = 2;
+
+        // Create volumetric light scattering post-process for rays
+        const volumetricLightScattering = new BABYLON.VolumetricLightScatteringPostProcess(
+            "vls",
+            1.0,
+            scene.activeCamera,
+            lightBall,
+            100,
+            BABYLON.Texture.BILINEAR_SAMPLINGMODE,
+            scene.getEngine(),
+            false
+        );
+
+        volumetricLightScattering.exposure = 0.8;
+        volumetricLightScattering.decay = 0.9;
+        volumetricLightScattering.weight = 1.0;
+        volumetricLightScattering.density = 1.0;
+
+        return { lightBall, volumetricLightScattering };
+    }
+
+    // Function to animate the volumetric light scattering properties
+    function animateVolumetricLightScattering(vls, duration) {
+        const keys = [
+            { frame: 0, value: { exposure: 1.0, decay: 0.9, weight: 1.0, density: 1.0 } },
+            { frame: duration, value: { exposure: 0.3, decay: 0.96815, weight: 0.58767, density: 0.926 } }
+        ];
+
+        const animateProperty = (property) => {
+            const animation = new BABYLON.Animation(
+                `vls_${property}`,
+                property,
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            const propertyKeys = keys.map(key => ({ frame: key.frame, value: key.value[property] }));
+            animation.setKeys(propertyKeys);
+
+            vls.animations.push(animation);
+        };
+
+        animateProperty("exposure");
+        animateProperty("decay");
+        animateProperty("weight");
+        animateProperty("density");
+
+        vls.getScene().beginAnimation(vls, 0, duration, false);
+    }
+
+    // Function to unfold/fold the pyramid and create/remove a light ball
+    function unfoldPyramid(faces, vertices, height) {
+        // Define an easing function for smoother animation
+        const easingFunction = new BABYLON.SineEase();
+        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+
+        // Check if the pyramid is currently unfolded
+        const isUnfolded = faces[0].rotationQuaternion.equals(BABYLON.Quaternion.Identity());
+
+        faces.forEach((face, index) => {
+            // Ensure rotationQuaternion is initialized
+            if (!face.rotationQuaternion) {
+                face.rotationQuaternion = new BABYLON.Quaternion(); // Initialize if null
+            }
+
+            // Calculate the rotation axis based on the base edge of the face
+            const edgeStart = vertices[index];
+            const edgeEnd = vertices[(index + 1) % 4];
+            
+            // Create a vector along the base edge to use as the rotation axis
+            const rotationAxis = edgeEnd.subtract(edgeStart).normalize();
+
+            // Create a new animation for the rotation
+            const rotationAnimation = new BABYLON.Animation(
+                `rotationAnimation${index}`,
+                "rotationQuaternion",
+                60, // Increase the duration for a more dramatic effect
+                BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            // Key frames for rotation (unfolding/folding effect)
+            const rotationKeys = [];
+            rotationKeys.push({ frame: 0, value: face.rotationQuaternion.clone() }); // Use clone to avoid mutation
+            const targetQuaternion = isUnfolded
+                ? BABYLON.Quaternion.RotationAxis(rotationAxis, Math.PI)
+                : BABYLON.Quaternion.Identity();
+            rotationKeys.push({ frame: 60, value: targetQuaternion });
+            rotationAnimation.setKeys(rotationKeys);
+            rotationAnimation.setEasingFunction(easingFunction);
+
+            // Apply animation to the face
+            face.animations.push(rotationAnimation);
+
+            // Create a new animation for the position
+            const positionAnimation = new BABYLON.Animation(
+                `positionAnimation${index}`,
+                "position",
+                60, // Increase the duration for a more dramatic effect
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            // Calculate new position after unfolding/folding
+            const unfoldedPosition = isUnfolded
+                ? face.position.add(rotationAxis.scale(height * 2)) // Move further out for a more dramatic effect
+                : face.position.subtract(rotationAxis.scale(height * 2));
+
+            // Key frames for position (moving the face outward/inward)
+            const positionKeys = [];
+            positionKeys.push({ frame: 0, value: face.position.clone() }); // Use clone to avoid mutation
+            positionKeys.push({ frame: 60, value: unfoldedPosition }); // Move outward/inward
+            positionAnimation.setKeys(positionKeys);
+            positionAnimation.setEasingFunction(easingFunction);
+
+            // Apply animation to the face
+            face.animations.push(positionAnimation);
+
+            // Create a new animation for scaling
+            const scaleAnimation = new BABYLON.Animation(
+                `scaleAnimation${index}`,
+                "scaling",
+                60, // Increase the duration for a more dramatic effect
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            // Key frames for scaling (unfolding/folding effect)
+            const scaleKeys = [];
+            scaleKeys.push({ frame: 0, value: face.scaling.clone() }); // Use clone to avoid mutation
+            const targetScale = isUnfolded
+                ? new BABYLON.Vector3(1.5, 1.5, 1.5) // Scale up for a more dramatic effect
+                : new BABYLON.Vector3(1, 1, 1); // Restore original scale
+            scaleKeys.push({ frame: 60, value: targetScale });
+            scaleAnimation.setKeys(scaleKeys);
+            scaleAnimation.setEasingFunction(easingFunction);
+
+            // Apply animation to the face
+            face.animations.push(scaleAnimation);
+
+            // Start the animations
+            face.getScene().beginAnimation(face, 0, 60, false);
+        });
+
+        if (isUnfolded) {
+            // Create and animate the light ball
+            const { lightBall, volumetricLightScattering } = createLightBall(faces[0].getScene(), faces[0].position);
+            const lightBallAnimation = new BABYLON.Animation(
+                "lightBallAnimation",
+                "position",
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            const lightBallKeys = [];
+            lightBallKeys.push({ frame: 0, value: lightBall.position.clone() });
+            lightBallKeys.push({ frame: 60, value: lightBall.position.add(new BABYLON.Vector3(0, height * 2, 0)) });
+            lightBallAnimation.setKeys(lightBallKeys);
+
+            lightBall.animations.push(lightBallAnimation);
+            lightBall.getScene().beginAnimation(lightBall, 0, 60, false);
+
+            // Animate the volumetric light scattering properties
+            animateVolumetricLightScattering(volumetricLightScattering, 60);
+
+            // Store the light ball and volumetric light scattering for later removal
+            faces[0].lightBall = lightBall;
+            faces[0].volumetricLightScattering = volumetricLightScattering;
+        } else {
+            // Animate the light ball back into the pyramid and then dispose of it
+            const lightBall = faces[0].lightBall;
+            const volumetricLightScattering = faces[0].volumetricLightScattering;
+
+            const lightBallReturnAnimation = new BABYLON.Animation(
+                "lightBallReturnAnimation",
+                "position",
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            const lightBallReturnKeys = [];
+            lightBallReturnKeys.push({ frame: 0, value: lightBall.position.clone() });
+            lightBallReturnKeys.push({ frame: 60, value: faces[0].position.clone() });
+            lightBallReturnAnimation.setKeys(lightBallReturnKeys);
+
+            lightBall.animations.push(lightBallReturnAnimation);
+            lightBall.getScene().beginAnimation(lightBall, 0, 60, false, 1, () => {
+                lightBall.dispose();
+                volumetricLightScattering.dispose();
+            });
         }
-
-        // Calculate the rotation axis based on the base edge of the face
-        const edgeStart = vertices[index];
-        const edgeEnd = vertices[(index + 1) % 4];
-        
-        // Create a vector along the base edge to use as the rotation axis
-        const rotationAxis = edgeEnd.subtract(edgeStart).normalize();
-
-        // Determine if the face is currently unfolded
-        const isUnfolded = face.rotationQuaternion.equals(BABYLON.Quaternion.Identity());
-
-        // Create a new animation for the rotation
-        const rotationAnimation = new BABYLON.Animation(
-            `rotationAnimation${index}`,
-            "rotationQuaternion",
-            60, // Increase the duration for a more dramatic effect
-            BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
-            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-
-        // Key frames for rotation (unfolding/folding effect)
-        const rotationKeys = [];
-        rotationKeys.push({ frame: 0, value: face.rotationQuaternion.clone() }); // Use clone to avoid mutation
-        const targetQuaternion = isUnfolded
-            ? BABYLON.Quaternion.RotationAxis(rotationAxis, Math.PI)
-            : BABYLON.Quaternion.Identity();
-        rotationKeys.push({ frame: 60, value: targetQuaternion });
-        rotationAnimation.setKeys(rotationKeys);
-        rotationAnimation.setEasingFunction(easingFunction);
-
-        // Apply animation to the face
-        face.animations.push(rotationAnimation);
-
-        // Create a new animation for the position
-        const positionAnimation = new BABYLON.Animation(
-            `positionAnimation${index}`,
-            "position",
-            60, // Increase the duration for a more dramatic effect
-            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-
-        // Calculate new position after unfolding/folding
-        const unfoldedPosition = isUnfolded
-            ? face.position.add(rotationAxis.scale(height * 2)) // Move further out for a more dramatic effect
-            : face.position.subtract(rotationAxis.scale(height * 2));
-
-        // Key frames for position (moving the face outward/inward)
-        const positionKeys = [];
-        positionKeys.push({ frame: 0, value: face.position.clone() }); // Use clone to avoid mutation
-        positionKeys.push({ frame: 60, value: unfoldedPosition }); // Move outward/inward
-        positionAnimation.setKeys(positionKeys);
-        positionAnimation.setEasingFunction(easingFunction);
-
-        // Apply animation to the face
-        face.animations.push(positionAnimation);
-
-        // Create a new animation for scaling
-        const scaleAnimation = new BABYLON.Animation(
-            `scaleAnimation${index}`,
-            "scaling",
-            60, // Increase the duration for a more dramatic effect
-            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-
-        // Key frames for scaling (unfolding/folding effect)
-        const scaleKeys = [];
-        scaleKeys.push({ frame: 0, value: face.scaling.clone() }); // Use clone to avoid mutation
-        const targetScale = isUnfolded
-            ? new BABYLON.Vector3(1.5, 1.5, 1.5) // Scale up for a more dramatic effect
-            : new BABYLON.Vector3(1, 1, 1); // Restore original scale
-        scaleKeys.push({ frame: 60, value: targetScale });
-        scaleAnimation.setKeys(scaleKeys);
-        scaleAnimation.setEasingFunction(easingFunction);
-
-        // Apply animation to the face
-        face.animations.push(scaleAnimation);
-
-        // Start the animations
-        face.getScene().beginAnimation(face, 0, 60, false);
-    });
-}
+    }
 
 function create3DScene() {
     const canvas = document.getElementById('babylon-container'); // Get the canvas element
