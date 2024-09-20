@@ -1006,41 +1006,131 @@
                 wireframeMaterial.wireframe = true;
 
                 // Add intense radiant glow
-                const glowLayer = new BABYLON.GlowLayer("glow", scene);
-                glowLayer.intensity = 1.0; // Increase the intensity for a more radiant glow
-                glowLayer.addIncludedOnlyMesh(pyramid);
+                const glowLayer2 = new BABYLON.GlowLayer("glow", scene);
+                glowLayer2.intensity = 1.0; // Increase the intensity for a more radiant glow
+                glowLayer2.addIncludedOnlyMesh(pyramid);
 
                 pyramid.material = wireframeMaterial;
 
-                // Create a dynamic texture for the skill label
-                const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", { width: 2048, height: 1024 }, scene); // Increased size for better readability
+                                // Create a dynamic texture for the skill label
+                                const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", { width: 2048, height: 1024 }, scene);
                 const context = dynamicTexture.getContext();
-                const size = 128; // Increased font size
-                context.font = size + "px Arial";
+                const size = 128;
+                context.font = size + "px Neon";
                 const text = skill.skill;
                 const textWidth = context.measureText(text).width;
 
-                dynamicTexture.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Arial", "white", "transparent", true); // Adjusted position for larger size
+                dynamicTexture.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
 
-                const textPlane = BABYLON.MeshBuilder.CreatePlane(skill.skill + "Text", { width: 16, height: 4 }, scene); // Increased plane size
-                textPlane.position = new BABYLON.Vector3(x, 6, z); // Raised the text up
-                textPlane.rotation.y = -angle; // Rotate the text to face the center
+                const textPlane = BABYLON.MeshBuilder.CreatePlane(skill.skill + "Text", { width: 16, height: 4 }, scene);
+                textPlane.position = new BABYLON.Vector3(x, 6, z);
+                textPlane.rotation.y = -angle;
                 textPlane.material = new BABYLON.StandardMaterial("textPlaneMaterial", scene);
                 textPlane.material.diffuseTexture = dynamicTexture;
                 textPlane.material.diffuseTexture.hasAlpha = true;
+                textPlane.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+
+                // Add glow effect
+                const glowLayer3 = new BABYLON.GlowLayer("glow", scene);
+                glowLayer3.intensity = 1.0;
+                glowLayer3.addIncludedOnlyMesh(textPlane);
 
                 // Create a second dynamic texture for the skill label on the back side
-                const dynamicTextureBack = new BABYLON.DynamicTexture("DynamicTextureBack", { width: 2048, height: 1024 }, scene); // Increased size for better readability
+                const dynamicTextureBack = new BABYLON.DynamicTexture("DynamicTextureBack", { width: 2048, height: 1024 }, scene);
                 const contextBack = dynamicTextureBack.getContext();
-                contextBack.font = size + "px Arial";
-                dynamicTextureBack.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Arial", "white", "transparent", true); // Adjusted position for larger size
+                contextBack.font = size + "px Neon";
+                dynamicTextureBack.drawText(text, (2048 - textWidth) / 2, 512, "bold " + size + "px Neon", "cyan", "transparent", true);
 
-                const textPlaneBack = BABYLON.MeshBuilder.CreatePlane(skill.skill + "TextBack", { width: 16, height: 4 }, scene); // Increased plane size
-                textPlaneBack.position = new BABYLON.Vector3(x, 6, z); // Raised the text up
-                textPlaneBack.rotation.y = -angle + Math.PI; // Rotate the text to face the center
+                const textPlaneBack = BABYLON.MeshBuilder.CreatePlane(skill.skill + "TextBack", { width: 16, height: 4 }, scene);
+                textPlaneBack.position = new BABYLON.Vector3(x, 6, z);
+                textPlaneBack.rotation.y = -angle + Math.PI;
                 textPlaneBack.material = new BABYLON.StandardMaterial("textPlaneMaterialBack", scene);
                 textPlaneBack.material.diffuseTexture = dynamicTextureBack;
                 textPlaneBack.material.diffuseTexture.hasAlpha = true;
+                textPlaneBack.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+
+                // Add glow effect to the back side
+                glowLayer.addIncludedOnlyMesh(textPlaneBack);
+                // Add particle effect as a circle underneath the pyramid
+                const particleSystem = new BABYLON.ParticleSystem("particles", 4000, scene);
+                particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+                particleSystem.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
+                particleSystem.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
+                particleSystem.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+                particleSystem.color1 = new BABYLON.Color4(0, 1, 1, 1);
+                particleSystem.color2 = new BABYLON.Color4(0, 0.5, 1, 1);
+                particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+                particleSystem.minSize = 0.05; // Smaller particle sizes
+                particleSystem.maxSize = 0.1; // Smaller particle sizes
+                particleSystem.minLifeTime = 0.3;
+                particleSystem.maxLifeTime = 1.5;
+                particleSystem.emitRate = 1000;
+                particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+                particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+                particleSystem.direction1 = new BABYLON.Vector3(0, 1, 0); // Emit particles upwards
+                particleSystem.direction2 = new BABYLON.Vector3(0, 1, 0);
+                particleSystem.minAngularSpeed = 0;
+                particleSystem.maxAngularSpeed = Math.PI;
+                particleSystem.minEmitPower = 0.5;
+                particleSystem.maxEmitPower = 1.5;
+                particleSystem.updateSpeed = 0.005;
+
+                // Align the particle system with the text in perspective
+                particleSystem.startDirectionFunction = function(worldMatrix, directionToUpdate) {
+                    BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
+                };
+
+                particleSystem.startPositionFunction = function(worldMatrix, positionToUpdate) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const radius = 2; // Radius of the circle
+                    const randX = radius * Math.cos(angle);
+                    const randY = -3;
+                    const randZ = radius * Math.sin(angle);
+                    BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
+                };
+
+                particleSystem.start();
+
+                // Add a second particle system for more dynamic effects
+                const particleSystem2 = new BABYLON.ParticleSystem("particles2", 4000, scene);
+                particleSystem2.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+                particleSystem2.emitter = new BABYLON.Vector3(textPlane.position.x, textPlane.position.y - 2, textPlane.position.z);
+                particleSystem2.minEmitBox = new BABYLON.Vector3(0, 0, 0); // Emit particles from a single point
+                particleSystem2.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+                particleSystem2.color1 = new BABYLON.Color4(1, 0, 0, 1);
+                particleSystem2.color2 = new BABYLON.Color4(1, 0.5, 0, 1);
+                particleSystem2.colorDead = new BABYLON.Color4(0.2, 0, 0, 0.0);
+                particleSystem2.minSize = 0.05; // Smaller particle sizes
+                particleSystem2.maxSize = 0.1; // Smaller particle sizes
+                particleSystem2.minLifeTime = 0.3;
+                particleSystem2.maxLifeTime = 1.5;
+                particleSystem2.emitRate = 1000;
+                particleSystem2.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+                particleSystem2.gravity = new BABYLON.Vector3(0, 9.81, 0);
+                particleSystem2.direction1 = new BABYLON.Vector3(0, -1, 0); // Emit particles upwards
+                particleSystem2.direction2 = new BABYLON.Vector3(0, -1, 0);
+                particleSystem2.minAngularSpeed = 0;
+                particleSystem2.maxAngularSpeed = Math.PI;
+                particleSystem2.minEmitPower = 0.5;
+                particleSystem2.maxEmitPower = 1.5;
+                particleSystem2.updateSpeed = 0.005;
+
+                // Align the second particle system with the text in perspective
+                particleSystem2.startDirectionFunction = function(worldMatrix, directionToUpdate) {
+                    BABYLON.Vector3.TransformNormalFromFloatsToRef(0, 1, 0, worldMatrix, directionToUpdate);
+                };
+
+                particleSystem2.startPositionFunction = function(worldMatrix, positionToUpdate) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const radius = 2; // Radius of the circle
+                    const randX = radius * Math.cos(angle);
+                    const randY = -3;
+                    const randZ = radius * Math.sin(angle);
+                    BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(randX, randY, randZ, worldMatrix, positionToUpdate);
+                };
+
+                particleSystem2.start();
+
 
                 // Add click event to display skill details
                 pyramid.actionManager = new BABYLON.ActionManager(scene);
